@@ -6,6 +6,9 @@ main = ".open-next/worker.js"
 [assets]
 directory = ".open-next/assets"
 
+[vars]
+GROQ_API_KEY = "placeholder"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "car-matcher-db"
