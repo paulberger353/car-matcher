@@ -4,12 +4,12 @@ export async function runMatching(db: any, newVehicle: any) {
     // Finde potenzielle Partner basierend auf Typ und Modell
     const partnerTyp = newVehicle.typ === "angebot" ? "gesuch" : "angebot";
 
-    const partners = await db
+    const partners = await (db
       .prepare(
         `SELECT * FROM vehicles WHERE typ = ? AND LOWER(modell) = LOWER(?) AND id != ?`
       )
       .bind(partnerTyp, newVehicle.modell, newVehicle.id)
-      .all<any>();
+      .all() as Promise<{ results: any[] }>);
 
     if (!partners.results || partners.results.length === 0) {
       return;
