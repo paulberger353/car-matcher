@@ -15,14 +15,36 @@ export async function GET(req: NextRequest) {
   const { env } = await getCloudflareContext({ async: true });
   const db = env.DB;
 
+  // Get query parameters
+  const searchParams = req.nextUrl.searchParams;
+  const limit = searchParams.get("limit");
+  const typ = searchParams.get("typ");
+
   try {
-    const vehicles = await db
-      .prepare(
-        `SELECT v.*, b.name as broker_name FROM vehicles v 
-         LEFT JOIN brokers b ON v.broker_id = b.id 
-         ORDER BY v.created_at DESC`
-      )
-      .all();
+    let query = `SELECT v.*, b.name as broker_name FROM vehicles v 
+                 LEFT JOIN brokers b ON v.broker_id = b.id`;
+    const params: (string | number)[] = [];
+
+    // Add filter for typ if specified
+    if (typ && (typ === "angebot" || typ === "gesuch")) {
+      query += ` WHERE v.typ = ?`;
+      params.push(typ);
+    }
+
+    query += ` ORDER BY v.created_at DESC`;
+
+    // Add limit if specified
+    if (limit && !isNaN(parseInt(limit))) {
+      query += ` LIMIT ?`;
+      params.push(parseInt(limit));
+    }
+
+    let preparedQuery = db.prepare(query);
+    if (params.length > 0) {
+      preparedQuery = preparedQuery.bind(...params);
+    }
+
+    const vehicles = await preparedQuery.all();
 
     return NextResponse.json({ vehicles: vehicles.results || [] });
   } catch (error) {

@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { name, telefon, email, firma, notizen } = await req.json();
+  const { name, kontakt } = await req.json();
 
   if (!name) {
     return NextResponse.json(
@@ -54,10 +54,10 @@ export async function POST(req: NextRequest) {
   try {
     const result = await db
       .prepare(
-        `INSERT INTO brokers (name, telefon, email, firma, notizen) 
-         VALUES (?, ?, ?, ?, ?)`
+        `INSERT INTO brokers (name, kontakt) 
+         VALUES (?, ?)`
       )
-      .bind(name, telefon || null, email || null, firma || null, notizen || null)
+      .bind(name, kontakt || null)
       .run();
 
     return NextResponse.json({ success: true, id: result.meta.last_row_id });

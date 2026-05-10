@@ -15,11 +15,12 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const { name, kontakt } = await req.json();
+  const { typ, marke, modell, baujahr, km_stand, preis, farbe, broker_id, notizen } =
+    await req.json();
 
-  if (!name) {
+  if (!typ || !marke || !modell) {
     return NextResponse.json(
-      { error: "Name ist erforderlich" },
+      { error: "Typ, Marke und Modell sind erforderlich" },
       { status: 400 }
     );
   }
@@ -30,17 +31,28 @@ export async function PUT(
   try {
     await db
       .prepare(
-        `UPDATE brokers SET name = ?, kontakt = ? 
+        `UPDATE vehicles SET typ = ?, marke = ?, modell = ?, baujahr = ?, km_stand = ?, preis = ?, farbe = ?, broker_id = ?, notizen = ? 
          WHERE id = ?`
       )
-      .bind(name, kontakt || null, id)
+      .bind(
+        typ,
+        marke,
+        modell,
+        baujahr || null,
+        km_stand || null,
+        preis || null,
+        farbe || null,
+        broker_id || null,
+        notizen || null,
+        id
+      )
       .run();
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Update broker error:", error);
+    console.error("Update vehicle error:", error);
     return NextResponse.json(
-      { error: "Failed to update broker" },
+      { error: "Failed to update vehicle" },
       { status: 500 }
     );
   }
@@ -63,30 +75,23 @@ export async function DELETE(
   const db = env.DB;
 
   try {
-    // Check if broker has vehicles
-    const vehicleCount = await db
-      .prepare(`SELECT COUNT(*) as count FROM vehicles WHERE broker_id = ?`)
-      .bind(id)
-      .first<{ count: number }>();
-
-    if (vehicleCount && vehicleCount.count > 0) {
-      return NextResponse.json(
-        { error: "Broker hat noch Fahrzeuge und kann nicht gelöscht werden" },
-        { status: 400 }
-      );
-    }
-
-    // Delete broker
+    // Delete all matches associated with this vehicle (CASCADE)
     await db
-      .prepare(`DELETE FROM brokers WHERE id = ?`)
+      .prepare(`DELETE FROM matches WHERE angebot_id = ? OR gesuch_id = ?`)
+      .bind(id, id)
+      .run();
+
+    // Delete the vehicle
+    await db
+      .prepare(`DELETE FROM vehicles WHERE id = ?`)
       .bind(id)
       .run();
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Delete broker error:", error);
+    console.error("Delete vehicle error:", error);
     return NextResponse.json(
-      { error: "Failed to delete broker" },
+      { error: "Failed to delete vehicle" },
       { status: 500 }
     );
   }
