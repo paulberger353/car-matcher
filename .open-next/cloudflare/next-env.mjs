@@ -1,3 +1,3 @@
-export const production = {};
-export const development = {};
+export const production = {"GROQ_API_KEY":"placeholder"};
+export const development = {"GROQ_API_KEY":"placeholder"};
 export const test = {};

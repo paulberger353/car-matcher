@@ -3648,13 +3648,48 @@
       "imports": [],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/api/matches/[id]/gesehen/route_client-reference-manifest.js": {
+      "bytes": 329,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/vehicles/parse/route_client-reference-manifest.js": {
+      "bytes": 323,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/brokers/[id]/route_client-reference-manifest.js": {
+      "bytes": 321,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/auth/logout/route_client-reference-manifest.js": {
+      "bytes": 320,
+      "imports": [],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/app/api/auth/login/route_client-reference-manifest.js": {
       "bytes": 319,
       "imports": [],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/api/vehicles/route_client-reference-manifest.js": {
+      "bytes": 317,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/brokers/route_client-reference-manifest.js": {
+      "bytes": 316,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/matches/route_client-reference-manifest.js": {
+      "bytes": 316,
+      "imports": [],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/node_modules/next/dist/server/load-manifest.external.js": {
-      "bytes": 39251,
+      "bytes": 69028,
       "imports": [
         {
           "path": "path",
@@ -3677,9 +3712,44 @@
           "original": "../shared/lib/deep-freeze"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/api/matches/[id]/gesehen/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\matches\\[id]\\gesehen\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/vehicles/parse/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\vehicles\\parse\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/brokers/[id]/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\brokers\\[id]\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/auth/logout/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\auth\\logout\\route_client-reference-manifest.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/api/auth/login/route_client-reference-manifest.js",
           "kind": "require-call",
           "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\auth\\login\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/vehicles/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\vehicles\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/brokers/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\brokers\\route_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/matches/route_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\matches\\route_client-reference-manifest.js"
         }
       ],
       "format": "cjs"
@@ -3730,8 +3800,19 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/api/auth/login/route.js": {
-      "bytes": 397,
+    ".open-next/server-functions/default/.next/server/app/api/matches/[id]/gesehen/route.js": {
+      "bytes": 451,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/vehicles/parse/route.js": {
+      "bytes": 436,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
@@ -3782,13 +3863,112 @@
       ],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/dashboard/fahrzeuge/page.js": {
+      "bytes": 1079,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../chunks/ssr/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/brokers/[id]/route.js": {
+      "bytes": 432,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/dashboard/matches/page.js": {
+      "bytes": 1075,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../chunks/ssr/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/auth/logout/route.js": {
+      "bytes": 343,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/dashboard/broker/page.js": {
+      "bytes": 1073,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../chunks/ssr/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/auth/login/route.js": {
+      "bytes": 432,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/app/_global-error/page.js": {
-      "bytes": 644,
+      "bytes": 654,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
           "kind": "require-call",
           "original": "../../chunks/ssr/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/vehicles/route.js": {
+      "bytes": 421,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/brokers/route.js": {
+      "bytes": 419,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../chunks/[turbopack]_runtime.js"
+        }
+      ],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/api/matches/route.js": {
+      "bytes": 419,
+      "imports": [
+        {
+          "path": ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js",
+          "kind": "require-call",
+          "original": "../../../chunks/[turbopack]_runtime.js"
         }
       ],
       "format": "cjs"
@@ -3805,7 +3985,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/_not-found/page.js": {
-      "bytes": 872,
+      "bytes": 882,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -3816,7 +3996,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/dashboard/page.js": {
-      "bytes": 1007,
+      "bytes": 1056,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -3827,7 +4007,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/login/page.js": {
-      "bytes": 960,
+      "bytes": 970,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -3838,7 +4018,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/page.js": {
-      "bytes": 945,
+      "bytes": 955,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -3849,7 +4029,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/node_modules/next/dist/server/require.js": {
-      "bytes": 5832,
+      "bytes": 8369,
       "imports": [
         {
           "path": "path",
@@ -3897,6 +4077,41 @@
           "external": true
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/api/matches/[id]/gesehen/route.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\matches\\[id]\\gesehen\\route.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/vehicles/parse/route.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\vehicles\\parse\\route.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/dashboard/fahrzeuge/page.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\dashboard\\fahrzeuge\\page.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/brokers/[id]/route.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\brokers\\[id]\\route.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/dashboard/matches/page.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\dashboard\\matches\\page.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/auth/logout/route.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\auth\\logout\\route.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/dashboard/broker/page.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\dashboard\\broker\\page.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/api/auth/login/route.js",
           "kind": "require-call",
           "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\auth\\login\\route.js"
@@ -3905,6 +4120,21 @@
           "path": ".open-next/server-functions/default/.next/server/app/_global-error/page.js",
           "kind": "require-call",
           "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\_global-error\\page.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/vehicles/route.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\vehicles\\route.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/brokers/route.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\brokers\\route.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/api/matches/route.js",
+          "kind": "require-call",
+          "original": "C:\\Users\\Paul\\.vscode\\CarMatcher\\car-matcher\\.open-next\\server-functions\\default\\.next\\server\\app\\api\\matches\\route.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/favicon.ico/route.js",
@@ -5512,7 +5742,7 @@
       "format": "esm"
     },
     ".open-next/server-functions/default/index.mjs": {
-      "bytes": 84777,
+      "bytes": 86631,
       "imports": [
         {
           "path": "node:module",
@@ -6689,11 +6919,32 @@
         ".open-next/server-functions/default/node_modules/next/dist/shared/lib/deep-freeze.js": {
           "bytesInOutput": 586
         },
+        ".open-next/server-functions/default/.next/server/app/api/matches/[id]/gesehen/route_client-reference-manifest.js": {
+          "bytesInOutput": 489
+        },
+        ".open-next/server-functions/default/.next/server/app/api/vehicles/parse/route_client-reference-manifest.js": {
+          "bytesInOutput": 478
+        },
+        ".open-next/server-functions/default/.next/server/app/api/brokers/[id]/route_client-reference-manifest.js": {
+          "bytesInOutput": 474
+        },
+        ".open-next/server-functions/default/.next/server/app/api/auth/logout/route_client-reference-manifest.js": {
+          "bytesInOutput": 472
+        },
         ".open-next/server-functions/default/.next/server/app/api/auth/login/route_client-reference-manifest.js": {
-          "bytesInOutput": 469
+          "bytesInOutput": 470
+        },
+        ".open-next/server-functions/default/.next/server/app/api/vehicles/route_client-reference-manifest.js": {
+          "bytesInOutput": 466
+        },
+        ".open-next/server-functions/default/.next/server/app/api/brokers/route_client-reference-manifest.js": {
+          "bytesInOutput": 464
+        },
+        ".open-next/server-functions/default/.next/server/app/api/matches/route_client-reference-manifest.js": {
+          "bytesInOutput": 464
         },
         ".open-next/server-functions/default/node_modules/next/dist/server/load-manifest.external.js": {
-          "bytesInOutput": 30271
+          "bytesInOutput": 55598
         },
         ".open-next/cloudflare-templates/shims/throw.js": {
           "bytesInOutput": 215
@@ -6701,32 +6952,62 @@
         ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js": {
           "bytesInOutput": 16705
         },
-        ".open-next/server-functions/default/.next/server/app/api/auth/login/route.js": {
-          "bytesInOutput": 513
+        ".open-next/server-functions/default/.next/server/app/api/matches/[id]/gesehen/route.js": {
+          "bytesInOutput": 574
+        },
+        ".open-next/server-functions/default/.next/server/app/api/vehicles/parse/route.js": {
+          "bytesInOutput": 557
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js": {
           "bytesInOutput": 16720
         },
+        ".open-next/server-functions/default/.next/server/app/dashboard/fahrzeuge/page.js": {
+          "bytesInOutput": 1198
+        },
+        ".open-next/server-functions/default/.next/server/app/api/brokers/[id]/route.js": {
+          "bytesInOutput": 551
+        },
+        ".open-next/server-functions/default/.next/server/app/dashboard/matches/page.js": {
+          "bytesInOutput": 1193
+        },
+        ".open-next/server-functions/default/.next/server/app/api/auth/logout/route.js": {
+          "bytesInOutput": 461
+        },
+        ".open-next/server-functions/default/.next/server/app/dashboard/broker/page.js": {
+          "bytesInOutput": 1190
+        },
+        ".open-next/server-functions/default/.next/server/app/api/auth/login/route.js": {
+          "bytesInOutput": 549
+        },
         ".open-next/server-functions/default/.next/server/app/_global-error/page.js": {
-          "bytesInOutput": 760
+          "bytesInOutput": 771
+        },
+        ".open-next/server-functions/default/.next/server/app/api/vehicles/route.js": {
+          "bytesInOutput": 539
+        },
+        ".open-next/server-functions/default/.next/server/app/api/brokers/route.js": {
+          "bytesInOutput": 536
+        },
+        ".open-next/server-functions/default/.next/server/app/api/matches/route.js": {
+          "bytesInOutput": 536
         },
         ".open-next/server-functions/default/.next/server/app/favicon.ico/route.js": {
           "bytesInOutput": 532
         },
         ".open-next/server-functions/default/.next/server/app/_not-found/page.js": {
-          "bytesInOutput": 986
+          "bytesInOutput": 996
         },
         ".open-next/server-functions/default/.next/server/app/dashboard/page.js": {
-          "bytesInOutput": 1120
+          "bytesInOutput": 1169
         },
         ".open-next/server-functions/default/.next/server/app/login/page.js": {
-          "bytesInOutput": 1069
+          "bytesInOutput": 1079
         },
         ".open-next/server-functions/default/.next/server/app/page.js": {
-          "bytesInOutput": 1051
+          "bytesInOutput": 1061
         },
         ".open-next/server-functions/default/node_modules/next/dist/server/require.js": {
-          "bytesInOutput": 3415
+          "bytesInOutput": 4398
         },
         ".open-next/server-functions/default/node_modules/next/dist/lib/interop-default.js": {
           "bytesInOutput": 363
@@ -6933,10 +7214,10 @@
           "bytesInOutput": 633
         },
         ".open-next/server-functions/default/index.mjs": {
-          "bytesInOutput": 58469
+          "bytesInOutput": 60114
         }
       },
-      "bytes": 2015473
+      "bytes": 2054197
     }
   }
 }
