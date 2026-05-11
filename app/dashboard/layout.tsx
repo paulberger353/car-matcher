@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/auth";
-import { redirect, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 
 const CarIcon = () => (
@@ -61,6 +59,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
@@ -70,10 +69,10 @@ export default function DashboardLayout({
         const res = await fetch("/api/vehicles?limit=1");
         setIsAuthed(res.ok);
         if (!res.ok) {
-          redirect("/login");
+          router.push("/login");
         }
       } catch {
-        redirect("/login");
+        router.push("/login");;
       }
     };
     checkAuth();
