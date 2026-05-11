@@ -80,17 +80,17 @@ export default function FahrzeugeSeite() {
   }
 
   async function deleteVehicle(id: number) {
-    if (!confirm("Fahrzeug wirklich l�schen?")) return;
+    if (!confirm("Fahrzeug wirklich löschen?")) return;
 
     try {
-      const res = await fetch(`/api/vehicles/$"'{id}'", { method: "DELETE" });
+      const res = await fetch(`/api/vehicles/${id}`, { method: "DELETE" });
       if (res.ok) {
         setVehicles((prev) => prev.filter((v) => v.id !== id));
       } else {
-        setError("Fehler beim L�schen");
+        setError("Fehler beim Löschen");
       }
     } catch (error) {
-      setError("Fehler beim L�schen");
+      setError("Fehler beim Löschen");
     }
   }
 
@@ -99,51 +99,59 @@ export default function FahrzeugeSeite() {
   );
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-6 md:p-8 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-[#fafafa] mb-1">Fahrzeuge</h1>
-          <p className="text-[#a1a1aa]">{filteredVehicles.length} Fahrzeuge</p>
+          <h1 className="text-4xl font-bold text-[#f0f0f5] mb-1">Fahrzeuge</h1>
+          <p className="text-[#9898a8]">{filteredVehicles.length} Fahrzeuge</p>
         </div>
         <button
           onClick={() => {
             setEditingVehicle(null);
             setIsModalOpen(true);
           }}
-          className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-[#fafafa] px-6 py-2.5 rounded-lg transition flex items-center gap-2 font-medium"
+          className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-4 md:px-6 py-2.5 rounded-lg transition flex items-center justify-center md:justify-start gap-2 font-medium"
         >
           <PlusIcon />
-          Fahrzeug hinzuf�gen
+          <span>Fahrzeug hinzufügen</span>
         </button>
       </div>
 
-      <div className="flex gap-3 mb-6">
-        {["alle", "angebot", "gesuch"].map((f) => (
+      {/* Filter Tabs */}
+      <div className="flex gap-2">
+        {(["alle", "angebot", "gesuch"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg transition $"'{
+            className={`px-4 py-2 rounded-lg transition font-medium ${
               filter === f
-                ? "bg-[#8b5cf6] text-[#fafafa]"
-                : "bg-[#27272a] text-[#a1a1aa] hover:text-[#fafafa]"
-            }'"}
+                ? "bg-[#8b5cf6] text-white"
+                : "bg-[#1e1e24] text-[#9898a8] hover:text-[#f0f0f5]"
+            }`}
           >
             {f === "alle" ? "Alle" : f === "angebot" ? "Angebote" : "Gesuche"}
           </button>
         ))}
       </div>
 
-      {error && <div className="mb-4 p-4 bg-[#ef4444]/10 border border-[#ef4444] text-[#fca5a5] rounded-lg">{error}</div>}
+      {/* Error Message */}
+      {error && (
+        <div className="p-4 bg-[#ef4444]/10 border border-[#ef4444] text-[#fca5a5] rounded-lg">
+          {error}
+        </div>
+      )}
 
-      <div className="bg-[#1c1c1f] border border-[#27272a] rounded-xl overflow-hidden">
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-[#1e1e24] border border-[#2a2a35] rounded-xl overflow-hidden">
         {loading ? (
-          <div className="px-6 py-12 text-center text-[#a1a1aa]">L�dt...</div>
+          <div className="px-6 py-12 text-center text-[#9898a8]">Lädt...</div>
         ) : filteredVehicles.length > 0 ? (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#27272a] bg-[#27272a]/40">
-                {["Typ", "Marke", "Modell", "Baujahr", "KM", "Preis", "Broker", "Datum", "Aktionen"].map((h) => (
-                  <th key={h} className="px-6 py-4 text-left text-sm font-semibold text-[#a1a1aa]">
+              <tr className="border-b border-[#2a2a35] bg-[#2a2a35]/40">
+                {["Typ", "Marke", "Modell", "Baujahr", "KM", "Preis", "Broker", "Datum", ""].map((h) => (
+                  <th key={h} className="px-6 py-4 text-left text-sm font-semibold text-[#9898a8]">
                     {h}
                   </th>
                 ))}
@@ -151,29 +159,29 @@ export default function FahrzeugeSeite() {
             </thead>
             <tbody>
               {filteredVehicles.map((vehicle) => (
-                <tr key={vehicle.id} className="border-b border-[#27272a] hover:bg-[#27272a]/30 transition">
+                <tr key={vehicle.id} className="border-b border-[#2a2a35] hover:bg-[#2a2a35]/50 transition">
                   <td className="px-6 py-4 text-sm">
                     <span
-                      className={`inline-block px-2 py-1 rounded-md text-xs font-semibold $"'{
+                      className={`inline-block px-2 py-1 rounded-md text-xs font-semibold ${
                         vehicle.typ === "angebot"
-                          ? "bg-[#8b5cf6]/20 text-[#a78bfa]"
-                          : "bg-[#3b82f6]/20 text-[#93c5fd]"
-                      }'"`}
+                          ? "bg-[#8b5cf6]/20 text-[#c4b5fd]"
+                          : "bg-blue-500/20 text-blue-300"
+                      }`}
                     >
                       {vehicle.typ === "angebot" ? "Angebot" : "Gesuch"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#fafafa]">{vehicle.marke}</td>
-                  <td className="px-6 py-4 text-sm text-[#fafafa]">{vehicle.modell}</td>
-                  <td className="px-6 py-4 text-sm text-[#a1a1aa]">{vehicle.baujahr || "-"}</td>
-                  <td className="px-6 py-4 text-sm text-[#a1a1aa]">
-                    {vehicle.km_stand ? `${vehicle.km_stand.toLocaleString("de-DE")}` : "-"}
+                  <td className="px-6 py-4 text-sm text-[#f0f0f5]">{vehicle.marke}</td>
+                  <td className="px-6 py-4 text-sm text-[#f0f0f5]">{vehicle.modell}</td>
+                  <td className="px-6 py-4 text-sm text-[#9898a8]">{vehicle.baujahr || "—"}</td>
+                  <td className="px-6 py-4 text-sm text-[#9898a8]">
+                    {vehicle.km_stand ? `${vehicle.km_stand.toLocaleString("de-DE")}` : "—"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#a1a1aa]">
-                    {vehicle.preis ? `�${vehicle.preis.toLocaleString("de-DE")}` : "-"}
+                  <td className="px-6 py-4 text-sm text-[#9898a8]">
+                    {vehicle.preis ? `${vehicle.preis.toLocaleString("de-DE")} €` : "—"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#a1a1aa]">{vehicle.broker_name || "-"}</td>
-                  <td className="px-6 py-4 text-sm text-[#a1a1aa]">
+                  <td className="px-6 py-4 text-sm text-[#9898a8]">{vehicle.broker_name || "—"}</td>
+                  <td className="px-6 py-4 text-sm text-[#9898a8]">
                     {new Date(vehicle.created_at).toLocaleDateString("de-DE")}
                   </td>
                   <td className="px-6 py-4 text-sm flex gap-2">
@@ -182,7 +190,7 @@ export default function FahrzeugeSeite() {
                         setEditingVehicle(vehicle);
                         setIsModalOpen(true);
                       }}
-                      className="text-[#8b5cf6] hover:text-[#a78bfa] transition"
+                      className="text-[#8b5cf6] hover:text-[#c4b5fd] transition"
                     >
                       <EditIcon />
                     </button>
@@ -198,10 +206,91 @@ export default function FahrzeugeSeite() {
             </tbody>
           </table>
         ) : (
-          <div className="px-6 py-12 text-center text-[#a1a1aa]">Keine Fahrzeuge vorhanden</div>
+          <div className="px-6 py-12 text-center text-[#9898a8]">Keine Fahrzeuge vorhanden</div>
         )}
       </div>
 
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {loading ? (
+          <div className="text-center text-[#9898a8]">Lädt...</div>
+        ) : filteredVehicles.length === 0 ? (
+          <div className="text-center text-[#9898a8]">Keine Fahrzeuge vorhanden</div>
+        ) : (
+          filteredVehicles.map((vehicle) => (
+            <div key={vehicle.id} className="bg-[#1e1e24] border border-[#2a2a35] rounded-xl p-4">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <p className="text-[#f0f0f5] font-bold text-lg">
+                    {vehicle.marke} {vehicle.modell}
+                  </p>
+                  <span
+                    className={`inline-block px-2 py-1 rounded-md text-xs font-semibold mt-1 ${
+                      vehicle.typ === "angebot"
+                        ? "bg-[#8b5cf6]/20 text-[#c4b5fd]"
+                        : "bg-blue-500/20 text-blue-300"
+                    }`}
+                  >
+                    {vehicle.typ === "angebot" ? "Angebot" : "Gesuch"}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingVehicle(vehicle);
+                      setIsModalOpen(true);
+                    }}
+                    className="text-[#8b5cf6] hover:text-[#c4b5fd] transition p-2"
+                  >
+                    <EditIcon />
+                  </button>
+                  <button
+                    onClick={() => deleteVehicle(vehicle.id)}
+                    className="text-[#ef4444] hover:text-[#fca5a5] transition p-2"
+                  >
+                    <DeleteIcon />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-sm">
+                {vehicle.baujahr && (
+                  <div className="flex justify-between">
+                    <span className="text-[#9898a8]">Baujahr:</span>
+                    <span className="text-[#f0f0f5]">{vehicle.baujahr}</span>
+                  </div>
+                )}
+                {vehicle.km_stand && (
+                  <div className="flex justify-between">
+                    <span className="text-[#9898a8]">KM:</span>
+                    <span className="text-[#f0f0f5]">{vehicle.km_stand.toLocaleString("de-DE")}</span>
+                  </div>
+                )}
+                {vehicle.preis && (
+                  <div className="flex justify-between">
+                    <span className="text-[#9898a8]">Preis:</span>
+                    <span className="text-[#f0f0f5]">{vehicle.preis.toLocaleString("de-DE")} €</span>
+                  </div>
+                )}
+                {vehicle.farbe && (
+                  <div className="flex justify-between">
+                    <span className="text-[#9898a8]">Farbe:</span>
+                    <span className="text-[#f0f0f5]">{vehicle.farbe}</span>
+                  </div>
+                )}
+                {vehicle.broker_name && (
+                  <div className="flex justify-between">
+                    <span className="text-[#9898a8]">Broker:</span>
+                    <span className="text-[#f0f0f5]">{vehicle.broker_name}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Modal */}
       {isModalOpen && (
         <VehicleModal
           vehicle={editingVehicle}
@@ -241,8 +330,49 @@ function VehicleModal({
     notizen: vehicle?.notizen || "",
   });
 
+  const [parseText, setParseText] = useState("");
+  const [parsing, setParsing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  async function handleParse() {
+    if (!parseText.trim()) {
+      setError("Bitte Text eingeben");
+      return;
+    }
+
+    setParsing(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/vehicles/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: parseText }),
+      });
+
+      const data = await res.json();
+
+      if (data.data) {
+        setForm((prev) => ({
+          ...prev,
+          ...data.data,
+          typ: data.data.typ || prev.typ,
+          marke: data.data.marke || prev.marke,
+          modell: data.data.modell || prev.modell,
+          baujahr: data.data.baujahr?.toString() || prev.baujahr,
+          km_stand: data.data.km_stand?.toString() || prev.km_stand,
+          preis: data.data.preis?.toString() || prev.preis,
+        }));
+        setActiveTab("manual");
+        setParseText("");
+      }
+    } catch (error) {
+      setError("Fehler beim Parsen");
+    } finally {
+      setParsing(false);
+    }
+  }
 
   async function handleSubmit() {
     if (!form.marke || !form.modell) {
@@ -255,17 +385,21 @@ function VehicleModal({
 
     try {
       const method = vehicle ? "PUT" : "POST";
-      const url = vehicle ? `/api/vehicles/$"'{vehicle.id}'" : "/api/vehicles";
+      const url = vehicle ? `/api/vehicles/${vehicle.id}` : "/api/vehicles";
 
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...form,
+          typ: form.typ,
+          marke: form.marke,
+          modell: form.modell,
           baujahr: form.baujahr ? parseInt(form.baujahr) : null,
           km_stand: form.km_stand ? parseInt(form.km_stand) : null,
           preis: form.preis ? parseInt(form.preis) : null,
+          farbe: form.farbe || null,
           broker_id: form.broker_id ? parseInt(form.broker_id) : null,
+          notizen: form.notizen || null,
         }),
       });
 
@@ -283,83 +417,224 @@ function VehicleModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1c1c1f] border border-[#27272a] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="border-b border-[#27272a] px-6 py-4 flex items-center justify-between sticky top-0 bg-[#1c1c1f]">
-          <h2 className="text-xl font-semibold text-[#fafafa]">
-            {vehicle ? "Fahrzeug bearbeiten" : "Fahrzeug hinzuf�gen"}
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 md:p-0">
+      <div className="bg-[#1e1e24] border border-[#2a2a35] rounded-xl w-full md:max-w-2xl max-h-[90vh] md:max-h-[85vh] overflow-y-auto flex flex-col">
+        {/* Header */}
+        <div className="border-b border-[#2a2a35] px-6 py-4 flex items-center justify-between sticky top-0 bg-[#1e1e24]">
+          <h2 className="text-xl font-semibold text-[#f0f0f5]">
+            {vehicle ? "Fahrzeug bearbeiten" : "Fahrzeug hinzufügen"}
           </h2>
           <button
             onClick={onClose}
-            className="text-[#a1a1aa] hover:text-[#fafafa] transition text-2xl"
+            className="text-[#9898a8] hover:text-[#f0f0f5] transition text-2xl leading-none"
           >
-            ?
+            ✕
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-[#a1a1aa] mb-3">Typ *</label>
-            <div className="flex gap-4">
-              {["angebot", "gesuch"].map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setForm((prev) => ({ ...prev, typ: t }))}
-                  className={`flex-1 px-4 py-3 rounded-lg transition font-medium $"'{
-                    form.typ === t
-                      ? "bg-[#8b5cf6] text-[#fafafa]"
-                      : "bg-[#27272a] text-[#a1a1aa]"
-                  }'"}
-                >
-                  {t === "angebot" ? "?? Angebot" : "?? Gesuch"}
-                </button>
-              ))}
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {/* Tabs */}
+          {!vehicle && (
+            <div className="flex gap-2 border-b border-[#2a2a35]">
+              <button
+                onClick={() => setActiveTab("manual")}
+                className={`px-4 py-2 font-medium transition ${
+                  activeTab === "manual"
+                    ? "border-b-2 border-[#8b5cf6] text-[#f0f0f5]"
+                    : "text-[#9898a8]"
+                }`}
+              >
+                Manuell
+              </button>
+              <button
+                onClick={() => setActiveTab("parse")}
+                className={`px-4 py-2 font-medium transition ${
+                  activeTab === "parse"
+                    ? "border-b-2 border-[#8b5cf6] text-[#f0f0f5]"
+                    : "text-[#9898a8]"
+                }`}
+              >
+                KI-Parse
+              </button>
             </div>
-          </div>
+          )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <InputField label="Marke *" value={form.marke} onChange={(e) => setForm((prev) => ({ ...prev, marke: e.target.value }))} placeholder="BMW" />
-            <InputField label="Modell *" value={form.modell} onChange={(e) => setForm((prev) => ({ ...prev, modell: e.target.value }))} placeholder="320i" />
-            <InputField label="Baujahr" type="number" value={form.baujahr} onChange={(e) => setForm((prev) => ({ ...prev, baujahr: e.target.value }))} placeholder="2020" />
-            <InputField label="KM" type="number" value={form.km_stand} onChange={(e) => setForm((prev) => ({ ...prev, km_stand: e.target.value }))} placeholder="50000" />
-            <InputField label="Preis (�)" type="number" value={form.preis} onChange={(e) => setForm((prev) => ({ ...prev, preis: e.target.value }))} placeholder="25000" />
-            <InputField label="Farbe" value={form.farbe} onChange={(e) => setForm((prev) => ({ ...prev, farbe: e.target.value }))} placeholder="Schwarz" />
-          </div>
+          {/* Parse Tab */}
+          {activeTab === "parse" && !vehicle && (
+            <div className="space-y-4">
+              <textarea
+                value={parseText}
+                onChange={(e) => setParseText(e.target.value)}
+                placeholder="Text eingeben (z.B. Fahrtgestellung aus Website kopieren)"
+                className="w-full bg-[#2a2a35] text-[#f0f0f5] rounded-lg px-4 py-3 outline-none border border-[#3a3a40] focus:border-[#8b5cf6] transition min-h-24"
+              />
+              <button
+                onClick={handleParse}
+                disabled={parsing}
+                className="w-full bg-[#8b5cf6] hover:bg-[#7c3aed] disabled:opacity-50 text-white px-4 py-2 rounded-lg transition font-medium"
+              >
+                {parsing ? "Wird geparst..." : "Mit KI analysieren"}
+              </button>
+            </div>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium text-[#a1a1aa] mb-2">Broker</label>
-            <select value={form.broker_id} onChange={(e) => setForm((prev) => ({ ...prev, broker_id: e.target.value }))} className="w-full bg-[#27272a] text-[#fafafa] rounded-lg px-4 py-2 outline-none border border-[#3f3f46] focus:border-[#8b5cf6] transition">
-              <option value="">-- Keine Auswahl --</option>
-              {brokers.map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
-          </div>
+          {/* Manual Tab */}
+          {activeTab === "manual" && (
+            <div className="space-y-4">
+              {/* Typ Toggle - großer Toggle am Anfang */}
+              <div>
+                <label className="block text-sm font-medium text-[#9898a8] mb-3">
+                  Fahrzeugtyp *
+                </label>
+                <div className="flex gap-4">
+                  {(["angebot", "gesuch"] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setForm((prev) => ({ ...prev, typ: t }))}
+                      className={`flex-1 px-4 py-4 rounded-lg transition font-medium text-lg ${
+                        form.typ === t
+                          ? "bg-[#8b5cf6] text-white"
+                          : "bg-[#2a2a35] text-[#9898a8] hover:text-[#f0f0f5]"
+                      }`}
+                    >
+                      {t === "angebot" ? "🚗 Angebot" : "🔍 Gesuch"}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#a1a1aa] mb-2">Notizen</label>
-            <textarea value={form.notizen} onChange={(e) => setForm((prev) => ({ ...prev, notizen: e.target.value }))} placeholder="Zus�tzliche Informationen" className="w-full bg-[#27272a] text-[#fafafa] rounded-lg px-4 py-3 outline-none border border-[#3f3f46] focus:border-[#8b5cf6] transition min-h-16" />
-          </div>
+              {/* Form Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField
+                  label="Marke *"
+                  value={form.marke}
+                  onChange={(e) => setForm((prev) => ({ ...prev, marke: e.target.value }))}
+                  placeholder="BMW"
+                />
+                <InputField
+                  label="Modell *"
+                  value={form.modell}
+                  onChange={(e) => setForm((prev) => ({ ...prev, modell: e.target.value }))}
+                  placeholder="320i"
+                />
+                <InputField
+                  label="Baujahr"
+                  type="number"
+                  value={form.baujahr}
+                  onChange={(e) => setForm((prev) => ({ ...prev, baujahr: e.target.value }))}
+                  placeholder="2020"
+                />
+                <InputField
+                  label="Kilometerstand"
+                  type="number"
+                  value={form.km_stand}
+                  onChange={(e) => setForm((prev) => ({ ...prev, km_stand: e.target.value }))}
+                  placeholder="50000"
+                />
+                <InputField
+                  label="Preis (€)"
+                  type="number"
+                  value={form.preis}
+                  onChange={(e) => setForm((prev) => ({ ...prev, preis: e.target.value }))}
+                  placeholder="25000"
+                />
+                <InputField
+                  label="Farbe"
+                  value={form.farbe}
+                  onChange={(e) => setForm((prev) => ({ ...prev, farbe: e.target.value }))}
+                  placeholder="Schwarz"
+                />
+              </div>
 
-          {error && <div className="p-4 bg-[#ef4444]/10 border border-[#ef4444] text-[#fca5a5] rounded-lg text-sm">{error}</div>}
+              {/* Broker Select */}
+              <div>
+                <label className="block text-sm font-medium text-[#9898a8] mb-2">
+                  Broker
+                </label>
+                <select
+                  value={form.broker_id}
+                  onChange={(e) => setForm((prev) => ({ ...prev, broker_id: e.target.value }))}
+                  className="w-full bg-[#2a2a35] text-[#f0f0f5] rounded-lg px-4 py-2 outline-none border border-[#3a3a40] focus:border-[#8b5cf6] transition"
+                >
+                  <option value="">— Keine Auswahl —</option>
+                  {brokers.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div className="flex gap-3 pt-4">
-            <button onClick={onClose} className="flex-1 bg-[#27272a] hover:bg-[#3f3f46] text-[#fafafa] px-4 py-2 rounded-lg transition font-medium">Abbrechen</button>
-            <button onClick={handleSubmit} disabled={submitting} className="flex-1 bg-[#8b5cf6] hover:bg-[#7c3aed] disabled:opacity-50 text-[#fafafa] px-4 py-2 rounded-lg transition font-medium">
-              {submitting ? "Speichert..." : "Speichern"}
-            </button>
-          </div>
+              {/* Notizen Textarea */}
+              <div>
+                <label className="block text-sm font-medium text-[#9898a8] mb-2">
+                  Notizen
+                </label>
+                <textarea
+                  value={form.notizen}
+                  onChange={(e) => setForm((prev) => ({ ...prev, notizen: e.target.value }))}
+                  placeholder="Zusätzliche Informationen"
+                  className="w-full bg-[#2a2a35] text-[#f0f0f5] rounded-lg px-4 py-3 outline-none border border-[#3a3a40] focus:border-[#8b5cf6] transition min-h-20"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="p-4 bg-[#ef4444]/10 border border-[#ef4444] text-[#fca5a5] rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-[#2a2a35] px-6 py-4 flex gap-3 sticky bottom-0 bg-[#1e1e24]">
+          <button
+            onClick={onClose}
+            className="flex-1 bg-[#2a2a35] hover:bg-[#3a3a40] text-[#f0f0f5] px-4 py-2 rounded-lg transition font-medium"
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="flex-1 bg-[#8b5cf6] hover:bg-[#7c3aed] disabled:opacity-50 text-white px-4 py-2 rounded-lg transition font-medium"
+          >
+            {submitting ? "Speichert..." : "Speichern"}
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function InputField({ label, type = "text", value, onChange, placeholder }: { label: string; type?: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; placeholder?: string }) {
+function InputField({
+  label,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+}) {
   return (
     <div>
-      <label className="block text-sm font-medium text-[#a1a1aa] mb-2">{label}</label>
-      <input type={type} value={value} onChange={onChange} placeholder={placeholder} className="w-full bg-[#27272a] text-[#fafafa] rounded-lg px-4 py-2 outline-none border border-[#3f3f46] focus:border-[#8b5cf6] transition" />
+      <label className="block text-sm font-medium text-[#9898a8] mb-2">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="w-full bg-[#2a2a35] text-[#f0f0f5] rounded-lg px-4 py-2 outline-none border border-[#3a3a40] focus:border-[#8b5cf6] transition"
+      />
     </div>
   );
 }
