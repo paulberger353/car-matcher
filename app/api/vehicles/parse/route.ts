@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { text } = await req.json();
+  const { text } = await req.json() as { text: string };
 
   if (!text) {
     return NextResponse.json({ error: "Text ist erforderlich" }, { status: 400 });

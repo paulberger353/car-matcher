@@ -4,7 +4,7 @@ import { signToken } from "@/lib/auth";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export async function POST(req: NextRequest) {
-  const { username, password } = await req.json();
+  const { username, password } = await req.json() as { username: string; password: string };
 
   const { env } = await getCloudflareContext({ async: true });
   const db = env.DB;

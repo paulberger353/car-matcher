@@ -65,7 +65,11 @@ export async function POST(req: NextRequest) {
   }
 
   const { typ, marke, modell, baujahr, km_stand, preis, farbe, broker_id, notizen } =
-    await req.json();
+    await req.json() as {
+      typ: string; marke: string; modell: string;
+      baujahr: number | null; km_stand: number | null; preis: number | null;
+      farbe: string | null; broker_id: number | null; notizen: string | null;
+    };
 
   // Validierung
   if (!typ || !marke || !modell) {

@@ -15,7 +15,7 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const { status } = await req.json();
+  const { status } = await req.json() as { status: string };
 
   if (!["vermittelt", "geplatzt"].includes(status)) {
     return NextResponse.json({ error: "Ungültiger Status" }, { status: 400 });

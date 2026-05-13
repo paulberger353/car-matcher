@@ -15,7 +15,9 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const { name, telefon, email, firma, notizen } = await req.json();
+  const { name, telefon, email, firma, notizen } = await req.json() as {
+    name: string; telefon: string | null; email: string | null; firma: string | null; notizen: string | null;
+  };
 
   if (!name) {
     return NextResponse.json(
