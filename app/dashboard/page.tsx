@@ -53,7 +53,8 @@ export default function DashboardPage() {
 
   async function fetchStats() {
     try {
-      const [statsData, recent] = await Promise.all([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const [statsData, recent]: [any, any] = await Promise.all([
         fetch("/api/stats").then((r) => (r.ok ? r.json() : {})),
         fetch("/api/vehicles?limit=5").then((r) =>
           r.ok ? r.json() : { vehicles: [] }
