@@ -45,7 +45,7 @@ export default function MatchesSeite() {
     try {
       const res = await fetch("/api/matches");
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json() as { matches: Match[] };
         setMatches(data.matches || []);
       }
     } catch (error) {

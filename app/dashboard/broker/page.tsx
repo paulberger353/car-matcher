@@ -39,7 +39,7 @@ export default function BrokerSeite() {
     try {
       const res = await fetch("/api/brokers");
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json() as { brokers: Broker[] };
         setBrokers(data.brokers || []);
       }
     } catch (error) {
@@ -236,7 +236,7 @@ function BrokerModal({
       if (res.ok) {
         onSuccess();
       } else {
-        const data = await res.json();
+        const data = await res.json() as { error?: string };
         setError(data.error || "Fehler beim Speichern");
       }
     } catch {

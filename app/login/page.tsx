@@ -22,7 +22,7 @@ export default function LoginPage() {
       if (res.ok) {
         router.push("/dashboard");
       } else {
-        const data = await res.json();
+        const data = await res.json() as { error?: string };
         setError(data.error || "Fehler beim Login");
       }
     } catch (err) {

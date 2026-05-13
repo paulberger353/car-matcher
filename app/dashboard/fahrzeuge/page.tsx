@@ -23,6 +23,17 @@ type Broker = {
   vehicle_count: number;
 };
 
+type ParsedVehicleData = {
+  typ?: string | null;
+  marke?: string | null;
+  modell?: string | null;
+  baujahr?: number | null;
+  km_stand?: number | null;
+  preis?: number | null;
+  farbe?: string | null;
+  notizen?: string | null;
+};
+
 const PlusIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -63,12 +74,12 @@ export default function FahrzeugeSeite() {
       ]);
 
       if (vehiclesRes.ok) {
-        const data = await vehiclesRes.json();
+        const data = await vehiclesRes.json() as { vehicles: Vehicle[] };
         setVehicles(data.vehicles || []);
       }
 
       if (brokersRes.ok) {
-        const data = await brokersRes.json();
+        const data = await brokersRes.json() as { brokers: Broker[] };
         setBrokers(data.brokers || []);
       }
     } catch (error) {
@@ -351,7 +362,7 @@ function VehicleModal({
         body: JSON.stringify({ text: parseText }),
       });
 
-      const data = await res.json();
+      const data = await res.json() as { data?: ParsedVehicleData; error?: string };
 
       if (data.data && Object.keys(data.data).length > 0) {
         const d = data.data;
@@ -410,7 +421,7 @@ function VehicleModal({
       if (res.ok) {
         onSuccess();
       } else {
-        const data = await res.json();
+        const data = await res.json() as { error?: string };
         setError(data.error || "Fehler beim Speichern");
       }
     } catch (error) {
