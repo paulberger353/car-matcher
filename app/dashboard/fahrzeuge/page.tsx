@@ -356,15 +356,15 @@ function VehicleModal({
       if (data.data && Object.keys(data.data).length > 0) {
         const d = data.data;
         setForm((prev) => ({
-          typ: d.typ || prev.typ,
-          marke: d.marke || prev.marke,
-          modell: d.modell || prev.modell,
-          baujahr: d.baujahr != null ? String(d.baujahr) : prev.baujahr,
-          km_stand: d.km_stand != null ? String(d.km_stand) : prev.km_stand,
-          preis: d.preis != null ? String(d.preis) : prev.preis,
-          farbe: d.farbe || prev.farbe,
+          typ: d.typ || "angebot",
+          marke: d.marke || "",
+          modell: d.modell || "",
+          baujahr: d.baujahr != null ? String(d.baujahr) : "",
+          km_stand: d.km_stand != null ? String(d.km_stand) : "",
+          preis: d.preis != null ? String(d.preis) : "",
+          farbe: d.farbe || "",
           broker_id: prev.broker_id,
-          notizen: d.notizen || prev.notizen,
+          notizen: d.notizen || "",
         }));
         setActiveTab("manual");
         setParseText("");
