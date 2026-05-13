@@ -4,45 +4,28 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const OfferIcon = () => (
-  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
 
 const RequestIcon = () => (
-  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
 
 const BrokerIcon = () => (
-  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM4 20h16a1 1 0 001-1v-2a3 3 0 00-3-3H7a3 3 0 00-3 3v2a1 1 0 001 1z" />
   </svg>
 );
 
 const MatchIcon = () => (
-  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4.243 4.243a4 4 0 105.656 5.656l4.243-4.243" />
   </svg>
 );
-
-type RecentVehicle = {
-  id: number;
-  marke: string;
-  modell: string;
-  typ: string;
-  baujahr: number | null;
-  broker_name: string | null;
-};
-
-type StatsApiResponse = {
-  angebote: number;
-  gesuche: number;
-  broker: number;
-  matches: number;
-  neueMatches: number;
-};
 
 type Stats = {
   angebote: number;
@@ -50,7 +33,6 @@ type Stats = {
   broker: number;
   matches: number;
   neueMatches: number;
-  recent: RecentVehicle[];
 };
 
 export default function DashboardPage() {
@@ -60,7 +42,6 @@ export default function DashboardPage() {
     broker: 0,
     matches: 0,
     neueMatches: 0,
-    recent: [],
   });
   const [loading, setLoading] = useState(true);
 
@@ -70,23 +51,10 @@ export default function DashboardPage() {
 
   async function fetchStats() {
     try {
-      const [statsData, recentData] = await Promise.all([
-        fetch("/api/stats").then((r): Promise<StatsApiResponse> =>
-          r.ok ? r.json() : Promise.resolve({ angebote: 0, gesuche: 0, broker: 0, matches: 0, neueMatches: 0 })
-        ),
-        fetch("/api/vehicles?limit=5").then((r): Promise<{ vehicles: RecentVehicle[] }> =>
-          r.ok ? r.json() : Promise.resolve({ vehicles: [] })
-        ),
-      ]);
-
-      setStats({
-        angebote: statsData.angebote,
-        gesuche: statsData.gesuche,
-        broker: statsData.broker,
-        matches: statsData.matches,
-        neueMatches: statsData.neueMatches,
-        recent: recentData.vehicles,
-      });
+      const statsData = await fetch("/api/stats").then((r): Promise<Stats> =>
+        r.ok ? r.json() : Promise.resolve({ angebote: 0, gesuche: 0, broker: 0, matches: 0, neueMatches: 0 })
+      );
+      setStats(statsData);
     } catch (error) {
       console.error("Error fetching stats:", error);
     } finally {
@@ -130,7 +98,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {/* Angebote */}
             <StatCard
               icon={<OfferIcon />}
@@ -161,111 +129,6 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Recent Vehicles */}
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold text-[#f0f0f5] mb-6">
-              Letzte Fahrzeuge
-            </h2>
-
-            {stats.recent.length === 0 ? (
-              <p className="text-[#9898a8]">Keine Fahrzeuge vorhanden</p>
-            ) : (
-              <div className="space-y-4 md:space-y-0 md:grid md:gap-4 hidden md:grid md:grid-cols-1">
-                <div className="bg-[#1e1e24] border border-[#2a2a35] rounded-xl overflow-hidden">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-[#2a2a35]">
-                        <th className="px-6 py-4 text-left text-[#9898a8]">
-                          Marke
-                        </th>
-                        <th className="px-6 py-4 text-left text-[#9898a8]">
-                          Modell
-                        </th>
-                        <th className="px-6 py-4 text-left text-[#9898a8]">
-                          Typ
-                        </th>
-                        <th className="px-6 py-4 text-left text-[#9898a8]">
-                          Baujahr
-                        </th>
-                        <th className="px-6 py-4 text-left text-[#9898a8]">
-                          Broker
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stats.recent.map((vehicle) => (
-                        <tr
-                          key={vehicle.id}
-                          className="border-b border-[#2a2a35] hover:bg-[#2a2a35]/50 transition"
-                        >
-                          <td className="px-6 py-4 text-[#f0f0f5]">
-                            {vehicle.marke}
-                          </td>
-                          <td className="px-6 py-4 text-[#f0f0f5]">
-                            {vehicle.modell}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                                vehicle.typ === "angebot"
-                                  ? "bg-[#8b5cf6]/20 text-[#c4b5fd]"
-                                  : "bg-blue-500/20 text-blue-300"
-                              }`}
-                            >
-                              {vehicle.typ === "angebot"
-                                ? "Angebot"
-                                : "Gesucht"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-[#9898a8]">
-                            {vehicle.baujahr || "—"}
-                          </td>
-                          <td className="px-6 py-4 text-[#9898a8]">
-                            {vehicle.broker_name || "—"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* Mobile Cards */}
-            <div className="md:hidden space-y-4">
-              {stats.recent.map((vehicle) => (
-                <div
-                  key={vehicle.id}
-                  className="bg-[#1e1e24] border border-[#2a2a35] rounded-xl p-4"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="text-[#f0f0f5] font-bold">
-                        {vehicle.marke} {vehicle.modell}
-                      </p>
-                      <p className="text-[#9898a8] text-sm">
-                        {vehicle.baujahr || "Baujahr unbekannt"}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                        vehicle.typ === "angebot"
-                          ? "bg-[#8b5cf6]/20 text-[#c4b5fd]"
-                          : "bg-blue-500/20 text-blue-300"
-                      }`}
-                    >
-                      {vehicle.typ === "angebot" ? "Angebot" : "Gesucht"}
-                    </span>
-                  </div>
-                  {vehicle.broker_name && (
-                    <p className="text-[#9898a8] text-sm">
-                      Broker: {vehicle.broker_name}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
         </>
       )}
     </div>
@@ -298,14 +161,14 @@ function StatCard({
   };
 
   return (
-    <div className={`${colorClasses[color]} rounded-xl p-6 border border-[#2a2a35]`}>
-      <div className="flex items-start justify-between mb-4">
-        <div className={`${iconColors[color]} p-2 bg-[#1e1e24] rounded-lg`}>
+    <div className={`${colorClasses[color]} rounded-xl p-3 md:p-6 border border-[#2a2a35]`}>
+      <div className="flex items-start justify-between mb-2 md:mb-4">
+        <div className={`${iconColors[color]} p-1.5 md:p-2 bg-[#1e1e24] rounded-lg`}>
           {icon}
         </div>
       </div>
-      <p className="text-4xl font-bold text-white mb-2">{value}</p>
-      <p className="text-[#9898a8]">{label}</p>
+      <p className="text-2xl md:text-4xl font-bold text-white mb-1 md:mb-2">{value}</p>
+      <p className="text-[#9898a8] text-xs md:text-base">{label}</p>
     </div>
   );
 }
