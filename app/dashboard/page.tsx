@@ -27,13 +27,30 @@ const MatchIcon = () => (
   </svg>
 );
 
+type RecentVehicle = {
+  id: number;
+  marke: string;
+  modell: string;
+  typ: string;
+  baujahr: number | null;
+  broker_name: string | null;
+};
+
+type StatsApiResponse = {
+  angebote: number;
+  gesuche: number;
+  broker: number;
+  matches: number;
+  neueMatches: number;
+};
+
 type Stats = {
   angebote: number;
   gesuche: number;
   broker: number;
   matches: number;
   neueMatches: number;
-  recent: any[];
+  recent: RecentVehicle[];
 };
 
 export default function DashboardPage() {
@@ -53,21 +70,22 @@ export default function DashboardPage() {
 
   async function fetchStats() {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const [statsData, recent]: [any, any] = await Promise.all([
-        fetch("/api/stats").then((r) => (r.ok ? r.json() : {})),
-        fetch("/api/vehicles?limit=5").then((r) =>
-          r.ok ? r.json() : { vehicles: [] }
+      const [statsData, recentData] = await Promise.all([
+        fetch("/api/stats").then((r): Promise<StatsApiResponse> =>
+          r.ok ? r.json() : Promise.resolve({ angebote: 0, gesuche: 0, broker: 0, matches: 0, neueMatches: 0 })
+        ),
+        fetch("/api/vehicles?limit=5").then((r): Promise<{ vehicles: RecentVehicle[] }> =>
+          r.ok ? r.json() : Promise.resolve({ vehicles: [] })
         ),
       ]);
 
       setStats({
-        angebote: statsData.angebote || 0,
-        gesuche: statsData.gesuche || 0,
-        broker: statsData.broker || 0,
-        matches: statsData.matches || 0,
-        neueMatches: statsData.neueMatches || 0,
-        recent: recent.vehicles || [],
+        angebote: statsData.angebote,
+        gesuche: statsData.gesuche,
+        broker: statsData.broker,
+        matches: statsData.matches,
+        neueMatches: statsData.neueMatches,
+        recent: recentData.vehicles,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -175,7 +193,7 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {stats.recent.map((vehicle: any) => (
+                      {stats.recent.map((vehicle) => (
                         <tr
                           key={vehicle.id}
                           className="border-b border-[#2a2a35] hover:bg-[#2a2a35]/50 transition"
@@ -215,7 +233,7 @@ export default function DashboardPage() {
 
             {/* Mobile Cards */}
             <div className="md:hidden space-y-4">
-              {stats.recent.map((vehicle: any) => (
+              {stats.recent.map((vehicle) => (
                 <div
                   key={vehicle.id}
                   className="bg-[#1e1e24] border border-[#2a2a35] rounded-xl p-4"
