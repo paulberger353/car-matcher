@@ -36,7 +36,7 @@ JSON-Felder: marke, modell, baujahr, km_stand, preis, farbe, typ, notizen
 Regeln:
 - "typ": "gesuch" wenn der Text eine Suchanfrage ist (Wörter wie "suche", "gesucht", "looking for", "wanted", "searching"). Sonst "angebot".
 - Zahlen immer als Zahl (kein String). Beispiele: "98k" = 98000, "78tkm" = 78000, "28.000€" = 28000, "VB 18500" = 18500.
-- km_stand: Wenn die Einheit "miles" oder "mi" ist, in km umrechnen (1 mile = 1.609 km, aufrunden auf ganze Zahl).
+- km_stand: Den genannten Kilometerwert immer eintragen, auch bei Formulierungen wie "max", "unter", "bis", "under", "up to". Beispiel: "max 50.000 km" → 50000, "under 20000 miles" → 20000 (Einheit merken). Wenn die Einheit "miles" oder "mi" ist, den Zahlenwert so lassen — die Umrechnung erfolgt separat.
 - preis: Immer in EUR. Wenn USD angegeben, mit 0.92 multiplizieren und auf ganze Zahl runden. Wenn GBP, mit 1.17 multiplizieren.
 - baujahr: Nur setzen wenn explizit genannt. Jahresbereiche wie "2017-2020" → Mittelwert (2018). "2020 or newer" → 2020. Nicht genannt → null.
 - farbe: Nur EINE Farbe eintragen. Markenfarben vollständig (z.B. "Giallo Orion", "Rosso Corsa", "Seneca Blue"). Bei mehreren Farben nur die erste nehmen.
