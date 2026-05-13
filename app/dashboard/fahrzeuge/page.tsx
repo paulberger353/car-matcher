@@ -353,19 +353,23 @@ function VehicleModal({
 
       const data = await res.json();
 
-      if (data.data) {
+      if (data.data && Object.keys(data.data).length > 0) {
+        const d = data.data;
         setForm((prev) => ({
-          ...prev,
-          ...data.data,
-          typ: data.data.typ || prev.typ,
-          marke: data.data.marke || prev.marke,
-          modell: data.data.modell || prev.modell,
-          baujahr: data.data.baujahr?.toString() || prev.baujahr,
-          km_stand: data.data.km_stand?.toString() || prev.km_stand,
-          preis: data.data.preis?.toString() || prev.preis,
+          typ: d.typ || prev.typ,
+          marke: d.marke || prev.marke,
+          modell: d.modell || prev.modell,
+          baujahr: d.baujahr != null ? String(d.baujahr) : prev.baujahr,
+          km_stand: d.km_stand != null ? String(d.km_stand) : prev.km_stand,
+          preis: d.preis != null ? String(d.preis) : prev.preis,
+          farbe: d.farbe || prev.farbe,
+          broker_id: prev.broker_id,
+          notizen: d.notizen || prev.notizen,
         }));
         setActiveTab("manual");
         setParseText("");
+      } else if (data.error) {
+        setError(data.error);
       }
     } catch (error) {
       setError("Fehler beim Parsen");

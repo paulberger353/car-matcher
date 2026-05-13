@@ -17,9 +17,9 @@ export async function GET(req: NextRequest) {
   try {
     const brokers = await db
       .prepare(
-        `SELECT b.*, COUNT(v.id) as vehicle_count FROM brokers b 
-         LEFT JOIN vehicles v ON b.id = v.broker_id 
-         GROUP BY b.id 
+        `SELECT b.*, COUNT(v.id) as vehicle_count FROM brokers b
+         LEFT JOIN vehicles v ON b.id = v.broker_id
+         GROUP BY b.id
          ORDER BY b.created_at DESC`
       )
       .all();
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { name, kontakt } = await req.json();
+  const { name, telefon, email, firma, notizen } = await req.json();
 
   if (!name) {
     return NextResponse.json(
@@ -54,10 +54,10 @@ export async function POST(req: NextRequest) {
   try {
     const result = await db
       .prepare(
-        `INSERT INTO brokers (name, kontakt) 
-         VALUES (?, ?)`
+        `INSERT INTO brokers (name, telefon, email, firma, notizen)
+         VALUES (?, ?, ?, ?, ?)`
       )
-      .bind(name, kontakt || null)
+      .bind(name, telefon || null, email || null, firma || null, notizen || null)
       .run();
 
     return NextResponse.json({ success: true, id: result.meta.last_row_id });
