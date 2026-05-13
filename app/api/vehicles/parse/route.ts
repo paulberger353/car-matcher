@@ -81,12 +81,20 @@ Regeln:
       return isFinite(n) && n > 0 ? n : null;
     };
 
+    const textLower = text.toLowerCase();
+    const isMiles = /\bmiles?\b|\bmi\b/.test(textLower);
+
+    let km_stand = toNum(parsed.km_stand);
+    if (isMiles && km_stand !== null) {
+      km_stand = Math.round(km_stand * 1.609);
+    }
+
     const safe = {
       typ: normalize(parsed.typ),
       marke: normalize(parsed.marke),
       modell: normalize(parsed.modell),
       baujahr: toNum(parsed.baujahr),
-      km_stand: toNum(parsed.km_stand),
+      km_stand,
       preis: toNum(parsed.preis),
       farbe: normalize(parsed.farbe),
       notizen: normalize(parsed.notizen),
