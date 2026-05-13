@@ -64,12 +64,12 @@ export async function POST(req: NextRequest) {
     const data = await response.json();
     const content = data.choices[0].message.content;
 
-    // Parse JSON response
+    // Parse JSON response — strip potential markdown code fences
     let parsed = {};
     try {
-      parsed = JSON.parse(content);
+      const cleaned = content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+      parsed = JSON.parse(cleaned);
     } catch {
-      // If JSON parsing fails, return empty
       parsed = {};
     }
 

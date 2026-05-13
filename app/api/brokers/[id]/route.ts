@@ -15,7 +15,7 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const { name, kontakt } = await req.json();
+  const { name, telefon, email, firma, notizen } = await req.json();
 
   if (!name) {
     return NextResponse.json(
@@ -30,10 +30,10 @@ export async function PUT(
   try {
     await db
       .prepare(
-        `UPDATE brokers SET name = ?, kontakt = ? 
+        `UPDATE brokers SET name = ?, telefon = ?, email = ?, firma = ?, notizen = ?
          WHERE id = ?`
       )
-      .bind(name, kontakt || null, id)
+      .bind(name, telefon || null, email || null, firma || null, notizen || null, id)
       .run();
 
     return NextResponse.json({ success: true });
@@ -63,7 +63,6 @@ export async function DELETE(
   const db = env.DB;
 
   try {
-    // Check if broker has vehicles
     const vehicleCount = await db
       .prepare(`SELECT COUNT(*) as count FROM vehicles WHERE broker_id = ?`)
       .bind(id)
@@ -76,7 +75,6 @@ export async function DELETE(
       );
     }
 
-    // Delete broker
     await db
       .prepare(`DELETE FROM brokers WHERE id = ?`)
       .bind(id)
