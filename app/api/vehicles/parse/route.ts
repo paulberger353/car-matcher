@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const response = await ai.run("@cf/meta/llama-3.1-8b-instruct", {
+    const response = await ai.run("@cf/meta/llama-3.2-1b-instruct", {
       messages: [
         {
           role: "system",
