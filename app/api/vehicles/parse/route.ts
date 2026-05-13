@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const response = await ai.run("@cf/meta/llama-3.2-1b-instruct", {
+    const response = await ai.run("@cf/meta/llama-3.1-8b-instruct", {
       messages: [
         {
           role: "system",
@@ -54,7 +54,7 @@ Regeln:
         ? String((response as { response: unknown }).response)
         : "";
 
-    let parsed = {};
+    let parsed: Record<string, unknown> = {};
     try {
       const cleaned = content
         .replace(/^```(?:json)?\s*/i, "")
@@ -65,7 +65,33 @@ Regeln:
       parsed = {};
     }
 
-    return NextResponse.json({ success: true, data: parsed });
+    // Normalize fields — ensure strings are strings, numbers are numbers
+    const normalize = (val: unknown): string | null => {
+      if (val === null || val === undefined) return null;
+      if (typeof val === "string") return val.trim() || null;
+      if (Array.isArray(val)) return val.join(", ") || null;
+      if (typeof val === "object") return null;
+      return String(val);
+    };
+
+    const toNum = (val: unknown): number | null => {
+      if (val === null || val === undefined) return null;
+      const n = typeof val === "string" ? parseFloat(val.replace(/[^\d.]/g, "")) : Number(val);
+      return isFinite(n) && n > 0 ? n : null;
+    };
+
+    const safe = {
+      typ: normalize(parsed.typ),
+      marke: normalize(parsed.marke),
+      modell: normalize(parsed.modell),
+      baujahr: toNum(parsed.baujahr),
+      km_stand: toNum(parsed.km_stand),
+      preis: toNum(parsed.preis),
+      farbe: normalize(parsed.farbe),
+      notizen: normalize(parsed.notizen),
+    };
+
+    return NextResponse.json({ success: true, data: safe });
   } catch (error) {
     console.error("Parse error:", error);
     return NextResponse.json({ error: "Parse Fehler", data: {} }, { status: 200 });
