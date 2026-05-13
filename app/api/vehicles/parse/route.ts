@@ -29,8 +29,18 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content:
-            'Extrahiere Fahrzeugdaten aus dem Text und antworte NUR mit reinem JSON ohne Markdown oder Code-Blöcke. Felder: marke, modell, baujahr, km_stand, preis, farbe, typ, notizen. "typ" ist "angebot" oder "gesuch". Zahlen als Zahlen. Unbekannte Felder als null.',
+          content: `Du extrahierst Fahrzeugdaten aus Texten und antwortest NUR mit reinem JSON, ohne Markdown, ohne Erklärungen, ohne Code-Blöcke.
+
+JSON-Felder: marke, modell, baujahr, km_stand, preis, farbe, typ, notizen
+
+Regeln:
+- "typ": "gesuch" wenn der Text eine Suchanfrage ist (Wörter wie "suche", "gesucht", "looking for", "wanted"). Sonst "angebot".
+- Zahlen immer als Zahl, nicht als String. Beispiele: "98k" = 98000, "8500km" = 8500, "28.000€" = 28000, "VB 18500" = 18500.
+- baujahr: nur setzen wenn explizit genannt. Jahresbereiche wie "2017-2020" den Mittelwert nehmen (2018). Wenn nicht genannt: null.
+- km_stand: Abkürzungen auflösen: "78tkm" = 78000, "12k km" = 12000.
+- farbe: nur die Farbe, keine Zusätze wie "metallic" weglassen — aber Markenfarben wie "Giallo Orion" vollständig übernehmen.
+- notizen: ALLE zusätzlichen Informationen die nicht in andere Felder passen (Ausstattung, Zustand, Besonderheiten, Verhandlungsbasis etc.).
+- Unbekannte Felder: null.`,
         },
         {
           role: "user",
