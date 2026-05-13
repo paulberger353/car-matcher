@@ -18,41 +18,31 @@ export async function POST(req: NextRequest) {
   }
 
   const { env } = await getCloudflareContext({ async: true });
-  const apiKey = env.GEMINI_API_KEY;
+  const ai = env.AI;
 
-  if (!apiKey) {
-    return NextResponse.json({ error: "Kein API Key konfiguriert" }, { status: 200 });
+  if (!ai) {
+    return NextResponse.json({ error: "KI nicht verfügbar" }, { status: 200 });
   }
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `Extrahiere Fahrzeugdaten aus dem folgenden Text und antworte NUR mit reinem JSON ohne Markdown-Formatierung oder Code-Blöcke. Das JSON soll folgende Felder enthalten: marke, modell, baujahr, km_stand, preis, farbe, typ, notizen. Das Feld "typ" ist entweder "angebot" oder "gesuch". Zahlen als Zahlen, nicht als Strings. Felder die nicht erkennbar sind als null.\n\nText: ${text}`,
-                },
-              ],
-            },
-          ],
-          generationConfig: { temperature: 0.1 },
-        }),
-      }
-    );
+    const response = await ai.run("@cf/meta/llama-3.1-8b-instruct", {
+      messages: [
+        {
+          role: "system",
+          content:
+            'Extrahiere Fahrzeugdaten aus dem Text und antworte NUR mit reinem JSON ohne Markdown oder Code-Blöcke. Felder: marke, modell, baujahr, km_stand, preis, farbe, typ, notizen. "typ" ist "angebot" oder "gesuch". Zahlen als Zahlen. Unbekannte Felder als null.',
+        },
+        {
+          role: "user",
+          content: text,
+        },
+      ],
+    });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("Gemini API error:", error);
-      return NextResponse.json({ error: `KI-API Fehler: ${response.status} ${error}`, data: {} }, { status: 200 });
-    }
-
-    const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const content: string =
+      typeof response === "object" && response !== null && "response" in response
+        ? String((response as { response: unknown }).response)
+        : "";
 
     let parsed = {};
     try {

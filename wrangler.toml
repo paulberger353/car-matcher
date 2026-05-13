@@ -12,6 +12,9 @@ binding = "DB"
 database_name = "car-matcher-db"
 database_id = "7325734f-ef28-433c-94bb-32f5f5c15117"
 
+[ai]
+binding = "AI"
+
 [observability]
 enabled = true
 
