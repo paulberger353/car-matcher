@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const error = await response.text();
       console.error("Gemini API error:", error);
-      return NextResponse.json({ error: "KI-API Fehler", data: {} }, { status: 200 });
+      return NextResponse.json({ error: `KI-API Fehler: ${response.status} ${error}`, data: {} }, { status: 200 });
     }
 
     const data = await response.json();
