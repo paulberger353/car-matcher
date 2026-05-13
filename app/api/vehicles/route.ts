@@ -88,9 +88,9 @@ export async function POST(req: NextRequest) {
         typ,
         marke,
         modell,
-        baujahr || null,
-        km_stand || null,
-        preis || null,
+        baujahr ?? null,
+        km_stand ?? null,
+        preis ?? null,
         farbe || null,
         broker_id || null,
         notizen || null
