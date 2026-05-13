@@ -32,6 +32,7 @@ type Stats = {
   gesuche: number;
   broker: number;
   matches: number;
+  neueMatches: number;
   recent: any[];
 };
 
@@ -41,6 +42,7 @@ export default function DashboardPage() {
     gesuche: 0,
     broker: 0,
     matches: 0,
+    neueMatches: 0,
     recent: [],
   });
   const [loading, setLoading] = useState(true);
@@ -51,33 +53,19 @@ export default function DashboardPage() {
 
   async function fetchStats() {
     try {
-      const [angebote, gesuche, broker, matches, recent] = await Promise.all([
-        fetch("/api/vehicles?typ=angebot&limit=1").then((r) =>
-          r.ok ? r.json() : { vehicles: [] }
-        ),
-        fetch("/api/vehicles?typ=gesuch&limit=1").then((r) =>
-          r.ok ? r.json() : { vehicles: [] }
-        ),
-        fetch("/api/brokers").then((r) => (r.ok ? r.json() : { brokers: [] })),
-        fetch("/api/matches").then((r) => (r.ok ? r.json() : { matches: [] })),
+      const [statsData, recent] = await Promise.all([
+        fetch("/api/stats").then((r) => (r.ok ? r.json() : {})),
         fetch("/api/vehicles?limit=5").then((r) =>
           r.ok ? r.json() : { vehicles: [] }
         ),
       ]);
 
-      // Count items
-      const countAngebote = await fetch("/api/vehicles?typ=angebot").then((r) =>
-        r.ok ? r.json() : { vehicles: [] }
-      );
-      const countGesuche = await fetch("/api/vehicles?typ=gesuch").then((r) =>
-        r.ok ? r.json() : { vehicles: [] }
-      );
-
       setStats({
-        angebote: countAngebote.vehicles?.length || 0,
-        gesuche: countGesuche.vehicles?.length || 0,
-        broker: broker.brokers?.length || 0,
-        matches: matches.matches?.filter((m: any) => !m.gesehen).length || 0,
+        angebote: statsData.angebote || 0,
+        gesuche: statsData.gesuche || 0,
+        broker: statsData.broker || 0,
+        matches: statsData.matches || 0,
+        neueMatches: statsData.neueMatches || 0,
         recent: recent.vehicles || [],
       });
     } catch (error) {
@@ -89,14 +77,14 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 md:p-8 space-y-8">
-      {/* Match Banner */}
-      {stats.matches > 0 && (
+      {/* Match Banner — nur bei ungesehenen Matches */}
+      {stats.neueMatches > 0 && (
         <div className="bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] rounded-xl p-6 flex flex-col md:flex-row md:items-center md:justify-between shadow-lg gap-4">
           <div className="flex items-center gap-4">
             <div className="w-3 h-3 bg-[#22c55e] rounded-full animate-pulse"></div>
             <div>
               <p className="text-white font-semibold text-lg">
-                {stats.matches} neue Matches gefunden
+                {stats.neueMatches} neue {stats.neueMatches === 1 ? "Match" : "Matches"} gefunden
               </p>
               <p className="text-white/80 text-sm">Fahrzeuge passen zu Anfragen</p>
             </div>

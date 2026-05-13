@@ -17,14 +17,17 @@ export async function GET(req: NextRequest) {
   try {
     const matches = await db
       .prepare(
-        `SELECT m.*, 
-                a.marke as angebot_marke, a.modell as angebot_modell, a.broker_id as angebot_broker_id, ab.name as angebot_broker,
-                g.marke as gesuch_marke, g.modell as gesuch_modell, g.broker_id as gesuch_broker_id, gb.name as gesuch_broker
+        `SELECT m.*,
+                a.marke as angebot_marke, a.modell as angebot_modell, ab.name as angebot_broker,
+                g.marke as gesuch_marke, g.modell as gesuch_modell, gb.name as gesuch_broker
          FROM matches m
          JOIN vehicles a ON m.angebot_id = a.id
          JOIN vehicles g ON m.gesuch_id = g.id
          LEFT JOIN brokers ab ON a.broker_id = ab.id
          LEFT JOIN brokers gb ON g.broker_id = gb.id
+         WHERE m.status = 'offen'
+            OR (m.status IN ('vermittelt', 'geplatzt')
+                AND m.status_at > datetime('now', '-7 days'))
          ORDER BY m.created_at DESC`
       )
       .all();
