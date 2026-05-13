@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CarMatcher - Fahrzeugangebote & Gesuche",
-  description: "CarMatcher - Fahrzeugangebote und Gesuche effizient verwalten",
+  title: "CarMatcher - Fahrzeugangebote & Suchen",
+  description: "CarMatcher - Fahrzeugangebote und Suchen effizient verwalten",
 };
 
 export default function RootLayout({

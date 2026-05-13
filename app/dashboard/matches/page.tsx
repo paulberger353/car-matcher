@@ -110,7 +110,7 @@ export default function MatchesSeite() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#2a2a35] bg-[#2a2a35]/40">
-                {["Angebot", "Gesuch", "Score", "Status", "Datum", ""].map((h) => (
+                {["Angebot", "Gesucht", "Score", "Status", "Datum", ""].map((h) => (
                   <th key={h} className="px-6 py-4 text-left text-sm font-semibold text-[#9898a8]">
                     {h}
                   </th>
@@ -215,7 +215,7 @@ export default function MatchesSeite() {
                     )}
                   </div>
                   <div className="bg-[#2a2a35]/60 rounded-lg p-3">
-                    <p className="text-blue-400 text-xs font-semibold mb-1 uppercase tracking-wide">Gesuch</p>
+                    <p className="text-blue-400 text-xs font-semibold mb-1 uppercase tracking-wide">Gesucht</p>
                     <p className="text-[#f0f0f5] font-medium text-sm">
                       {match.gesuch_marke} {match.gesuch_modell}
                     </p>

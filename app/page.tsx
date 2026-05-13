@@ -92,7 +92,7 @@ export default function HomePage() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-[#f0f0f5]">CarMatcher</h1>
-                <p className="text-xs text-[#9898a8]">Fahrzeugangebote & Gesuche</p>
+                <p className="text-xs text-[#9898a8]">Fahrzeugangebote & Suchen</p>
               </div>
             </div>
 
@@ -138,7 +138,7 @@ export default function HomePage() {
                     : "bg-[#1e1e24] text-[#9898a8] hover:text-[#f0f0f5]"
                 }`}
               >
-                {tab === "angebot" ? "🚗 Angebote" : "🔍 Gesuche"}
+                {tab === "angebot" ? "🚗 Angebote" : "🔍 Suchen"}
               </button>
             ))}
           </div>

@@ -130,7 +130,7 @@ export default function FahrzeugeSeite() {
                 : "bg-[#1e1e24] text-[#9898a8] hover:text-[#f0f0f5]"
             }`}
           >
-            {f === "alle" ? "Alle" : f === "angebot" ? "Angebote" : "Gesuche"}
+            {f === "alle" ? "Alle" : f === "angebot" ? "Angebote" : "Suchen"}
           </button>
         ))}
       </div>
@@ -168,7 +168,7 @@ export default function FahrzeugeSeite() {
                           : "bg-blue-500/20 text-blue-300"
                       }`}
                     >
-                      {vehicle.typ === "angebot" ? "Angebot" : "Gesuch"}
+                      {vehicle.typ === "angebot" ? "Angebot" : "Gesucht"}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-[#f0f0f5]">{vehicle.marke}</td>
@@ -231,7 +231,7 @@ export default function FahrzeugeSeite() {
                         : "bg-blue-500/20 text-blue-300"
                     }`}
                   >
-                    {vehicle.typ === "angebot" ? "Angebot" : "Gesuch"}
+                    {vehicle.typ === "angebot" ? "Angebot" : "Gesucht"}
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -502,7 +502,7 @@ function VehicleModal({
                           : "bg-[#2a2a35] text-[#9898a8] hover:text-[#f0f0f5]"
                       }`}
                     >
-                      {t === "angebot" ? "🚗 Angebot" : "🔍 Gesuch"}
+                      {t === "angebot" ? "🚗 Angebot" : "🔍 Gesucht"}
                     </button>
                   ))}
                 </div>

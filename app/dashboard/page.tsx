@@ -131,10 +131,10 @@ export default function DashboardPage() {
               value={stats.angebote}
               color="violet"
             />
-            {/* Gesuche */}
+            {/* Suchen */}
             <StatCard
               icon={<RequestIcon />}
-              label="Gesuche"
+              label="Suchen"
               value={stats.gesuche}
               color="blue"
             />
@@ -207,7 +207,7 @@ export default function DashboardPage() {
                             >
                               {vehicle.typ === "angebot"
                                 ? "Angebot"
-                                : "Gesuch"}
+                                : "Gesucht"}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-[#9898a8]">
@@ -247,7 +247,7 @@ export default function DashboardPage() {
                           : "bg-blue-500/20 text-blue-300"
                       }`}
                     >
-                      {vehicle.typ === "angebot" ? "Angebot" : "Gesuch"}
+                      {vehicle.typ === "angebot" ? "Angebot" : "Gesucht"}
                     </span>
                   </div>
                   {vehicle.broker_name && (
