@@ -21,6 +21,11 @@ jobs:
       - name: Build for Cloudflare Workers
         run: npx opennextjs-cloudflare build
 
+      - name: Set JWT_SECRET
+        run: echo "${{ secrets.JWT_SECRET }}" | npx wrangler secret put JWT_SECRET
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - name: Deploy
         run: npx wrangler deploy
         env:
