@@ -7,9 +7,6 @@ main = ".open-next/worker.js"
 directory = ".open-next/assets"
 
 
-[ai]
-binding = "AI"
-
 [observability]
 enabled = true
 
