@@ -107,8 +107,13 @@ export async function POST(req: NextRequest) {
       km_stand: null, preis: null, farbe: null, notizen: null,
     };
     try {
-      const cleaned = content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-      parsed = { ...parsed, ...JSON.parse(cleaned) };
+      let jsonStr = content.trim();
+      jsonStr = jsonStr.replace(/^```(?:json)?\s*/im, "").replace(/\s*```\s*$/m, "").trim();
+      if (!jsonStr.startsWith("{")) {
+        const match = jsonStr.match(/\{[\s\S]*\}/);
+        if (match) jsonStr = match[0];
+      }
+      parsed = { ...parsed, ...JSON.parse(jsonStr) };
     } catch { /* keep defaults */ }
 
     const normalize = (val: unknown): string | null => {

@@ -247,11 +247,11 @@ function VehicleModal({ vehicle, brokers, onClose, onSuccess }: {
     try {
       const res = await fetch("/api/vehicles/parse", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: parseText }) });
       const data = await res.json() as { data?: ParsedVehicleData; error?: string };
-      if (data.data && Object.keys(data.data).length > 0) {
-        const d = data.data;
+      const d = data.data;
+      if (d && (d.marke || d.modell || d.preis || d.baujahr)) {
         setForm((p) => ({ ...p, typ: d.typ || "angebot", marke: d.marke || "", modell: d.modell || "", baujahr: d.baujahr != null ? String(d.baujahr) : "", km_stand: d.km_stand != null ? String(d.km_stand) : "", preis: d.preis != null ? String(d.preis) : "", farbe: d.farbe || "", notizen: d.notizen || "" }));
         setActiveTab("manual"); setParseText("");
-      } else { setError(data.error || "Parse failed"); }
+      } else { setError(data.error || "Could not extract vehicle data — try rephrasing"); }
     } catch { setError("Parse error"); }
     finally { setParsing(false); }
   }
