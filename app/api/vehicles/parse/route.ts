@@ -102,7 +102,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `AI error: ${msg}`, data: {} }, { status: 200 });
     }
 
-    const rawContent = cfData.result?.response ?? "";
+    const raw = cfData.result?.response;
+    const rawContent = typeof raw === "string" ? raw : JSON.stringify(raw ?? "");
 
     const tryParse = (s: string): ParsedVehicle | null => {
       try {
