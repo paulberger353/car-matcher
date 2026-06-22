@@ -1,0 +1,174 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+const OfferIcon = () => (
+  <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const RequestIcon = () => (
+  <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const BrokerIcon = () => (
+  <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM4 20h16a1 1 0 001-1v-2a3 3 0 00-3-3H7a3 3 0 00-3 3v2a1 1 0 001 1z" />
+  </svg>
+);
+
+const MatchIcon = () => (
+  <svg className="w-5 h-5 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4.243 4.243a4 4 0 105.656 5.656l4.243-4.243" />
+  </svg>
+);
+
+type Stats = {
+  angebote: number;
+  gesuche: number;
+  broker: number;
+  matches: number;
+  neueMatches: number;
+};
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState<Stats>({
+    angebote: 0,
+    gesuche: 0,
+    broker: 0,
+    matches: 0,
+    neueMatches: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  async function fetchStats() {
+    try {
+      const statsData = await fetch("/api/stats").then((r): Promise<Stats> =>
+        r.ok ? r.json() : Promise.resolve({ angebote: 0, gesuche: 0, broker: 0, matches: 0, neueMatches: 0 })
+      );
+      setStats(statsData);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="p-6 md:p-8 space-y-8">
+      {/* Match Banner — nur bei ungesehenen Matches */}
+      {stats.neueMatches > 0 && (
+        <div className="bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] rounded-xl p-6 flex flex-col md:flex-row md:items-center md:justify-between shadow-lg gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-3 h-3 bg-[#22c55e] rounded-full animate-pulse"></div>
+            <div>
+              <p className="text-white font-semibold text-lg">
+                {stats.neueMatches} neue {stats.neueMatches === 1 ? "Match" : "Matches"} gefunden
+              </p>
+              <p className="text-white/80 text-sm">Fahrzeuge passen zu Anfragen</p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/matches"
+            className="bg-white hover:bg-white/90 text-[#8b5cf6] px-6 py-2 rounded-lg font-medium transition whitespace-nowrap"
+          >
+            Ansehen
+          </Link>
+        </div>
+      )}
+
+      {/* Header */}
+      <div>
+        <h1 className="text-4xl font-bold text-[#f0f0f5] mb-2">Dashboard</h1>
+        <p className="text-[#9898a8]">Übersicht und Statistiken</p>
+      </div>
+
+      {/* Stats Grid */}
+      {loading ? (
+        <div className="text-center py-12">
+          <p className="text-[#9898a8]">Wird geladen...</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+            {/* Angebote */}
+            <StatCard
+              icon={<OfferIcon />}
+              label="Angebote"
+              value={stats.angebote}
+              color="violet"
+            />
+            {/* Suchen */}
+            <StatCard
+              icon={<RequestIcon />}
+              label="Suchen"
+              value={stats.gesuche}
+              color="blue"
+            />
+            {/* Broker */}
+            <StatCard
+              icon={<BrokerIcon />}
+              label="Broker"
+              value={stats.broker}
+              color="emerald"
+            />
+            {/* Matches */}
+            <StatCard
+              icon={<MatchIcon />}
+              label="Offene Matches"
+              value={stats.matches}
+              color="amber"
+            />
+          </div>
+
+        </>
+      )}
+    </div>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  color,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  color: "violet" | "blue" | "emerald" | "amber";
+}) {
+  const colorClasses = {
+    violet: "bg-[#8b5cf6]/10 text-[#c4b5fd]",
+    blue: "bg-blue-500/10 text-blue-300",
+    emerald: "bg-emerald-500/10 text-emerald-300",
+    amber: "bg-amber-500/10 text-amber-300",
+  };
+
+  const iconColors = {
+    violet: "text-[#c4b5fd]",
+    blue: "text-blue-300",
+    emerald: "text-emerald-300",
+    amber: "text-amber-300",
+  };
+
+  return (
+    <div className={`${colorClasses[color]} rounded-xl p-3 md:p-6 border border-[#2a2a35]`}>
+      <div className="flex items-start justify-between mb-2 md:mb-4">
+        <div className={`${iconColors[color]} p-1.5 md:p-2 bg-[#1e1e24] rounded-lg`}>
+          {icon}
+        </div>
+      </div>
+      <p className="text-2xl md:text-4xl font-bold text-white mb-1 md:mb-2">{value}</p>
+      <p className="text-[#9898a8] text-xs md:text-base">{label}</p>
+    </div>
+  );
+}

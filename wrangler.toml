@@ -1,0 +1,23 @@
+name = "car-matcher"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+main = ".open-next/worker.js"
+
+[assets]
+directory = ".open-next/assets"
+
+
+[[d1_databases]]
+binding = "DB"
+database_name = "car-matcher-db"
+database_id = "7325734f-ef28-433c-94bb-32f5f5c15117"
+
+[ai]
+binding = "AI"
+
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+invocation_logs = true

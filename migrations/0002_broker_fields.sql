@@ -1,0 +1,4 @@
+ALTER TABLE brokers ADD COLUMN telefon TEXT;
+ALTER TABLE brokers ADD COLUMN email TEXT;
+ALTER TABLE brokers ADD COLUMN firma TEXT;
+ALTER TABLE brokers ADD COLUMN notizen TEXT;
