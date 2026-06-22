@@ -1,4 +1,5 @@
 name = "car-matcher"
+account_id = "8e14786f0fba155ebb3c1a057d7a5cee"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 main = ".open-next/worker.js"
