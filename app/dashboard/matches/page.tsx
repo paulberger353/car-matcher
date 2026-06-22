@@ -17,19 +17,42 @@ function scoreStyle(score: number): { bg: string; text: string } {
   return { bg: "var(--error-bg)", text: "var(--error)" };
 }
 
+const CACHE_KEY = "cm_matches_overrides";
+
+type Overrides = Record<number, Partial<Pick<Match, "gesehen" | "status" | "status_at">>>;
+
+function loadOverrides(): Overrides {
+  try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || "{}"); } catch { return {}; }
+}
+
+function saveOverrides(o: Overrides) {
+  try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(o)); } catch { /* noop */ }
+}
+
+function applyOverrides(matches: Match[], overrides: Overrides): Match[] {
+  return matches.map((m) => overrides[m.id] ? { ...m, ...overrides[m.id] } : m);
+}
+
 export default function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("alle");
 
-  useEffect(() => { fetchMatches(); }, []);
+  useEffect(() => {
+    const isReload = (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined)?.type === "reload";
+    if (isReload) sessionStorage.removeItem(CACHE_KEY);
+    fetchMatches();
+  }, []);
 
   async function fetchMatches() {
     setLoading(true);
     try {
       const res = await fetch("/api/matches");
-      if (res.ok) setMatches((await res.json() as { matches: Match[] }).matches || []);
+      if (res.ok) {
+        const raw = (await res.json() as { matches: Match[] }).matches || [];
+        setMatches(applyOverrides(raw, loadOverrides()));
+      }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }
@@ -38,7 +61,12 @@ export default function MatchesPage() {
     setUpdating(id);
     try {
       const res = await fetch(`/api/matches/${id}/gesehen`, { method: "PUT" });
-      if (res.ok) setMatches((p) => p.map((m) => m.id === id ? { ...m, gesehen: 1 } : m));
+      if (res.ok) {
+        const overrides = loadOverrides();
+        overrides[id] = { ...overrides[id], gesehen: 1 };
+        saveOverrides(overrides);
+        setMatches((p) => p.map((m) => m.id === id ? { ...m, gesehen: 1 } : m));
+      }
     } finally { setUpdating(null); }
   }
 
@@ -46,7 +74,13 @@ export default function MatchesPage() {
     setUpdating(id);
     try {
       const res = await fetch(`/api/matches/${id}/status`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
-      if (res.ok) setMatches((p) => p.map((m) => m.id === id ? { ...m, status, gesehen: 1, status_at: new Date().toISOString() } : m));
+      if (res.ok) {
+        const now = new Date().toISOString();
+        const overrides = loadOverrides();
+        overrides[id] = { ...overrides[id], status, gesehen: 1, status_at: now };
+        saveOverrides(overrides);
+        setMatches((p) => p.map((m) => m.id === id ? { ...m, status, gesehen: 1, status_at: now } : m));
+      }
     } finally { setUpdating(null); }
   }
 
