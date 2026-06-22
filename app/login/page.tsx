@@ -87,7 +87,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p style={{ color: "rgba(255,255,255,0.25)" }} className="text-xs">
-          © 2025 paulberg-software.de — Showcase project
+          © {new Date().getFullYear()} paulberg-software.de — Showcase project
         </p>
       </div>
 

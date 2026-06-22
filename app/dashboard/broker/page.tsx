@@ -98,7 +98,11 @@ export default function BrokersPage() {
                 >
                   <td className="px-5 py-3.5 text-sm font-medium" style={{ color: "var(--text-primary)" }}>{b.name}</td>
                   <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-secondary)" }}>{b.firma || "—"}</td>
-                  <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-secondary)" }}>{b.telefon || "—"}</td>
+                  <td className="px-5 py-3.5 text-sm">
+                    {b.telefon ? (
+                      <a href={`tel:${b.telefon}`} style={{ color: "var(--accent)" }} className="hover:underline">{b.telefon}</a>
+                    ) : <span style={{ color: "var(--text-secondary)" }}>—</span>}
+                  </td>
                   <td className="px-5 py-3.5 text-sm">
                     {b.email ? (
                       <a href={`mailto:${b.email}`} style={{ color: "var(--accent)" }} className="hover:underline">{b.email}</a>
@@ -149,7 +153,7 @@ export default function BrokersPage() {
                 {b.telefon && (
                   <div className="flex justify-between">
                     <span style={{ color: "var(--text-tertiary)" }}>Phone</span>
-                    <span style={{ color: "var(--text-secondary)" }}>{b.telefon}</span>
+                    <a href={`tel:${b.telefon}`} style={{ color: "var(--accent)" }} className="hover:underline">{b.telefon}</a>
                   </div>
                 )}
                 {b.email && (

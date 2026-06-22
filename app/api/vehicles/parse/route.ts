@@ -17,11 +17,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Text is required" }, { status: 400 });
   }
 
-  const { env } = await getCloudflareContext({ async: true });
-  const ai = env.AI;
+  let ai: Ai | undefined;
+  try {
+    const { env } = await getCloudflareContext({ async: true });
+    ai = env.AI;
+  } catch {
+    // Not running in the Cloudflare Workers runtime (e.g. local `next dev`)
+  }
 
   if (!ai) {
-    return NextResponse.json({ error: "AI not available", data: {} }, { status: 200 });
+    return NextResponse.json({
+      error: "AI Parse is only available in the deployed version. Run `npm run preview` or open car.paulberg-software.de to use this feature.",
+      data: {},
+    }, { status: 200 });
   }
 
   try {
