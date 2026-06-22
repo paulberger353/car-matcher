@@ -14,14 +14,14 @@ export async function POST(req: NextRequest) {
   const { text } = await req.json() as { text: string };
 
   if (!text) {
-    return NextResponse.json({ error: "Text ist erforderlich" }, { status: 400 });
+    return NextResponse.json({ error: "Text is required" }, { status: 400 });
   }
 
   const { env } = await getCloudflareContext({ async: true });
   const ai = env.AI;
 
   if (!ai) {
-    return NextResponse.json({ error: "KI nicht verfügbar" }, { status: 200 });
+    return NextResponse.json({ error: "AI not available", data: {} }, { status: 200 });
   }
 
   try {
@@ -29,19 +29,19 @@ export async function POST(req: NextRequest) {
       messages: [
         {
           role: "system",
-          content: `Du extrahierst Fahrzeugdaten aus Texten und antwortest NUR mit reinem JSON, ohne Markdown, ohne Erklärungen, ohne Code-Blöcke.
+          content: `Extract vehicle data from text and respond ONLY with raw JSON — no markdown, no explanations, no code blocks.
 
-JSON-Felder: marke, modell, baujahr, km_stand, preis, farbe, typ, notizen
+JSON fields: marke, modell, baujahr, km_stand, preis, farbe, typ, notizen
 
-Regeln:
-- "typ": "gesuch" wenn der Text eine Suchanfrage ist (Wörter wie "suche", "gesucht", "looking for", "wanted", "searching"). Sonst "angebot".
-- Zahlen immer als Zahl (kein String). Beispiele: "98k" = 98000, "78tkm" = 78000, "28.000€" = 28000, "VB 18500" = 18500.
-- km_stand: Den genannten Kilometerwert immer eintragen, auch bei Formulierungen wie "max", "unter", "bis", "under", "up to". Beispiel: "max 50.000 km" → 50000, "under 20000 miles" → 20000 (Einheit merken). Wenn die Einheit "miles" oder "mi" ist, den Zahlenwert so lassen — die Umrechnung erfolgt separat.
-- preis: Immer in EUR. Wenn USD angegeben, mit 0.92 multiplizieren und auf ganze Zahl runden. Wenn GBP, mit 1.17 multiplizieren.
-- baujahr: Nur setzen wenn explizit genannt. Jahresbereiche wie "2017-2020" → Mittelwert (2018). "2020 or newer" → 2020. Nicht genannt → null.
-- farbe: Nur EINE Farbe eintragen. Markenfarben vollständig (z.B. "Giallo Orion", "Rosso Corsa", "Seneca Blue"). Bei mehreren Farben nur die erste nehmen.
-- notizen: NUR Informationen die nicht in andere Felder passen: Ausstattung, Zustand, Besonderheiten, Extras. NICHT: Marke, Modell, Baujahr, Kilometerstand, Preis, Farbe, Typ wiederholen.
-- Unbekannte Felder: null.`,
+Rules:
+- "typ": "gesuch" if the text is a search request (words like "suche", "gesucht", "looking for", "wanted", "searching"). Otherwise "angebot".
+- Numbers always as number (not string). Examples: "98k" = 98000, "78tkm" = 78000, "28.000€" = 28000, "VB 18500" = 18500.
+- km_stand: Always enter the stated mileage value, even with "max", "under", "up to". Example: "max 50.000 km" → 50000, "under 20000 miles" → 20000 (note the unit). If the unit is "miles" or "mi", keep the number as-is — conversion happens separately.
+- preis: Always in EUR. If USD, multiply by 0.92 and round to integer. If GBP, multiply by 1.17.
+- baujahr: Only set if explicitly stated. Year ranges like "2017-2020" → average (2018). "2020 or newer" → 2020. Not mentioned → null.
+- farbe: Only ONE color. Include brand color names in full (e.g. "Giallo Orion", "Rosso Corsa"). If multiple colors, use the first.
+- notizen: ONLY information that does not fit other fields: equipment, condition, extras. Do NOT repeat make, model, year, mileage, price, color, type.
+- Unknown fields: null.`,
         },
         {
           role: "user",
@@ -66,7 +66,6 @@ Regeln:
       parsed = {};
     }
 
-    // Normalize fields — ensure strings are strings, numbers are numbers
     const normalize = (val: unknown): string | null => {
       if (val === null || val === undefined) return null;
       if (typeof val === "string") return val.trim() || null;
@@ -103,6 +102,6 @@ Regeln:
     return NextResponse.json({ success: true, data: safe });
   } catch (error) {
     console.error("Parse error:", error);
-    return NextResponse.json({ error: "Parse Fehler", data: {} }, { status: 200 });
+    return NextResponse.json({ error: "Parse error", data: {} }, { status: 200 });
   }
 }

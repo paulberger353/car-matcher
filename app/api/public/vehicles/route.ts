@@ -1,51 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { vehicles, getBrokerName } from "@/lib/data";
 
 export async function GET(req: NextRequest) {
-  const { env } = await getCloudflareContext({ async: true });
-  const db = env.DB;
+  const searchParams = req.nextUrl.searchParams;
+  const typ = searchParams.get("typ");
+  const search = searchParams.get("search")?.toLowerCase();
 
-  try {
-    const searchParams = req.nextUrl.searchParams;
-    const typ = searchParams.get("typ");
-    const search = searchParams.get("search");
+  let result = [...vehicles];
 
-    let query = `SELECT v.id, v.marke, v.modell, v.baujahr, v.km_stand, v.farbe, v.notizen, b.name as broker_name 
-                 FROM vehicles v 
-                 LEFT JOIN brokers b ON v.broker_id = b.id 
-                 WHERE 1=1`;
-    const params: (string | number)[] = [];
+  if (typ === "angebot" || typ === "gesuch") {
+    result = result.filter((v) => v.typ === typ);
+  }
 
-    // Filter by typ if specified
-    if (typ && (typ === "angebot" || typ === "gesuch")) {
-      query += ` AND v.typ = ?`;
-      params.push(typ);
-    }
-
-    // Filter by search term (marke or modell)
-    if (search) {
-      const searchTerm = `%${search}%`;
-      query += ` AND (LOWER(v.marke) LIKE LOWER(?) OR LOWER(v.modell) LIKE LOWER(?))`;
-      params.push(searchTerm, searchTerm);
-    }
-
-    query += ` ORDER BY v.created_at DESC`;
-
-    let preparedQuery = db.prepare(query);
-    if (params.length > 0) {
-      preparedQuery = preparedQuery.bind(...params);
-    }
-
-    const result = await preparedQuery.all();
-
-    return NextResponse.json({
-      vehicles: result.results || [],
-    });
-  } catch (error) {
-    console.error("Get public vehicles error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch vehicles" },
-      { status: 500 }
+  if (search) {
+    result = result.filter(
+      (v) =>
+        v.marke.toLowerCase().includes(search) ||
+        v.modell.toLowerCase().includes(search)
     );
   }
+
+  result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const public_fields = result.map(({ id, marke, modell, baujahr, km_stand, farbe, notizen, broker_id }) => ({
+    id, marke, modell, baujahr, km_stand, farbe, notizen,
+    broker_name: getBrokerName(broker_id),
+  }));
+
+  return NextResponse.json({ vehicles: public_fields });
 }

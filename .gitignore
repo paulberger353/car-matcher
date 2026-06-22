@@ -48,4 +48,5 @@ migrations/seed-users.sql
 CLAUDE.md
 AGENTS.md
 audit_report.md
+memory/
 .open-next/

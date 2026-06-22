@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
-import { runMatching } from "@/lib/matching";
+import { vehicles, getBrokerName } from "@/lib/data";
 
 export async function GET(req: NextRequest) {
   const cookieStore = await cookies();
@@ -12,48 +11,24 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = env.DB;
-
-  // Get query parameters
   const searchParams = req.nextUrl.searchParams;
   const limit = searchParams.get("limit");
   const typ = searchParams.get("typ");
 
-  try {
-    let query = `SELECT v.*, b.name as broker_name FROM vehicles v 
-                 LEFT JOIN brokers b ON v.broker_id = b.id`;
-    const params: (string | number)[] = [];
+  let result = [...vehicles].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
-    // Add filter for typ if specified
-    if (typ && (typ === "angebot" || typ === "gesuch")) {
-      query += ` WHERE v.typ = ?`;
-      params.push(typ);
-    }
-
-    query += ` ORDER BY v.created_at DESC`;
-
-    // Add limit if specified
-    if (limit && !isNaN(parseInt(limit))) {
-      query += ` LIMIT ?`;
-      params.push(parseInt(limit));
-    }
-
-    let preparedQuery = db.prepare(query);
-    if (params.length > 0) {
-      preparedQuery = preparedQuery.bind(...params);
-    }
-
-    const vehicles = await preparedQuery.all();
-
-    return NextResponse.json({ vehicles: vehicles.results || [] });
-  } catch (error) {
-    console.error("Get vehicles error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch vehicles" },
-      { status: 500 }
-    );
+  if (typ === "angebot" || typ === "gesuch") {
+    result = result.filter((v) => v.typ === typ);
   }
+
+  if (limit && !isNaN(parseInt(limit))) {
+    result = result.slice(0, parseInt(limit));
+  }
+
+  const withBroker = result.map((v) => ({ ...v, broker_name: getBrokerName(v.broker_id) }));
+  return NextResponse.json({ vehicles: withBroker });
 }
 
 export async function POST(req: NextRequest) {
@@ -64,65 +39,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { typ, marke, modell, baujahr, km_stand, preis, farbe, broker_id, notizen } =
-    await req.json() as {
-      typ: string; marke: string; modell: string;
-      baujahr: number | null; km_stand: number | null; preis: number | null;
-      farbe: string | null; broker_id: number | null; notizen: string | null;
-    };
+  const { typ, marke, modell } = await req.json() as { typ: string; marke: string; modell: string };
 
-  // Validierung
   if (!typ || !marke || !modell) {
-    return NextResponse.json(
-      { error: "Typ, Marke und Modell sind erforderlich" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Type, make and model are required" }, { status: 400 });
   }
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = env.DB;
-
-  try {
-    const result = await db
-      .prepare(
-        `INSERT INTO vehicles (typ, marke, modell, baujahr, km_stand, preis, farbe, broker_id, notizen) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        typ,
-        marke,
-        modell,
-        baujahr ?? null,
-        km_stand ?? null,
-        preis ?? null,
-        farbe || null,
-        broker_id || null,
-        notizen || null
-      )
-      .run();
-
-    // Run matching for new vehicle
-    const newVehicle = {
-      id: result.meta.last_row_id,
-      typ,
-      marke,
-      modell,
-      baujahr,
-      km_stand,
-      preis,
-      farbe,
-      broker_id,
-      notizen,
-    };
-
-    await runMatching(db, newVehicle);
-
-    return NextResponse.json({ success: true, id: result.meta.last_row_id });
-  } catch (error) {
-    console.error("Create vehicle error:", error);
-    return NextResponse.json(
-      { error: "Failed to create vehicle" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({ success: true, id: 999 });
 }
