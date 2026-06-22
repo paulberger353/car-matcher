@@ -198,7 +198,7 @@ export default function VehiclesPage() {
             fetchData();
             if (matchCount > 0) {
               setMatchNotification(matchCount);
-              setTimeout(() => setMatchNotification(null), 6000);
+              setTimeout(() => setMatchNotification(null), 8000);
             }
           }}
         />
@@ -206,15 +206,35 @@ export default function VehiclesPage() {
 
       {matchNotification !== null && (
         <div
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl text-sm shadow-xl"
-          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--accent)", color: "var(--text-primary)" }}
+          className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 text-sm font-medium shadow-lg"
+          style={{ backgroundColor: "var(--accent)", color: "#fff" }}
         >
-          <span style={{ color: "var(--success)", fontWeight: 700 }}>✓</span>
-          <span>
-            <strong>{matchNotification}</strong> potential match{matchNotification !== 1 ? "es" : ""} found
-          </span>
-          <a href="/dashboard/matches" className="font-semibold" style={{ color: "var(--accent)" }}>View →</a>
-          <button onClick={() => setMatchNotification(null)} className="ml-1" style={{ color: "var(--text-tertiary)" }}>✕</button>
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-bold">✓</span>
+            <span className="text-base">
+              <strong>{matchNotification}</strong> potential match{matchNotification !== 1 ? "es" : ""} found for this vehicle
+            </span>
+          </div>
+          <div className="flex items-center gap-5">
+            <a
+              href="/dashboard/matches"
+              className="px-4 py-1.5 rounded-lg text-sm font-semibold transition"
+              style={{ backgroundColor: "rgba(255,255,255,0.2)", color: "#fff" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.3)")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)")}
+            >
+              View Matches →
+            </a>
+            <button
+              onClick={() => setMatchNotification(null)}
+              className="text-lg leading-none transition"
+              style={{ color: "rgba(255,255,255,0.7)" }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -289,8 +309,8 @@ function VehicleModal({ vehicle, brokers, onClose, onSuccess }: {
         let matchCount = 0;
         if (!vehicle) {
           try {
-            const mr = await fetch(`/api/vehicles/check-matches?typ=${form.typ}&marke=${encodeURIComponent(form.marke)}`);
-            if (mr.ok) matchCount = ((await mr.json()) as { count: number }).count;
+            const data = await res.json() as { success: boolean; id: number; matchCount?: number };
+            matchCount = data.matchCount ?? 0;
           } catch { /* ignore */ }
         }
         onSuccess(matchCount);

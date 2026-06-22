@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
-import { vehicles, getBrokerName } from "@/lib/data";
+import { vehicles, matches, getBrokerName } from "@/lib/data";
 
 export async function GET(req: NextRequest) {
   const cookieStore = await cookies();
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   }
 
   const newId = vehicles.length > 0 ? Math.max(...vehicles.map((v) => v.id)) + 1 : 1;
-  vehicles.push({
+  const newVehicle = {
     id: newId,
     typ: body.typ,
     marke: body.marke,
@@ -62,6 +62,29 @@ export async function POST(req: NextRequest) {
     broker_id: body.broker_id ?? null,
     notizen: body.notizen ?? null,
     created_at: new Date().toISOString(),
-  });
-  return NextResponse.json({ success: true, id: newId });
+  };
+  vehicles.push(newVehicle);
+
+  const oppositeTyp = newVehicle.typ === "angebot" ? "gesuch" : "angebot";
+  const counterparts = vehicles.filter(
+    (v) => v.typ === oppositeTyp && v.id !== newId &&
+    v.marke.toLowerCase() === newVehicle.marke.toLowerCase()
+  );
+  if (counterparts.length > 0) {
+    const nextMatchId = matches.length > 0 ? Math.max(...matches.map((m) => m.id)) + 1 : 1;
+    counterparts.forEach((cp, i) => {
+      matches.push({
+        id: nextMatchId + i,
+        angebot_id: newVehicle.typ === "angebot" ? newId : cp.id,
+        gesuch_id: newVehicle.typ === "gesuch" ? newId : cp.id,
+        score: 75,
+        gesehen: 0,
+        status: "offen",
+        status_at: null,
+        created_at: new Date().toISOString(),
+      });
+    });
+  }
+
+  return NextResponse.json({ success: true, id: newId, matchCount: counterparts.length });
 }
