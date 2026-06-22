@@ -87,7 +87,9 @@ export async function POST(req: NextRequest) {
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: text },
+            { role: "assistant", content: '{"' },
           ],
+          max_tokens: 512,
         }),
       }
     );
@@ -100,21 +102,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `AI error: ${msg}`, data: {} }, { status: 200 });
     }
 
-    const content = cfData.result?.response ?? "{}";
+    const rawContent = cfData.result?.response ?? "";
 
-    let parsed: ParsedVehicle = {
+    const tryParse = (s: string): ParsedVehicle | null => {
+      try {
+        const v = JSON.parse(s);
+        return v && typeof v === "object" && !Array.isArray(v) ? v as ParsedVehicle : null;
+      } catch { return null; }
+    };
+
+    const extracted =
+      tryParse('{"' + rawContent) ??
+      tryParse(rawContent.trim()) ??
+      tryParse(rawContent.replace(/^```(?:json)?\s*/im, "").replace(/\s*```\s*$/m, "").trim()) ??
+      (() => { const m = rawContent.match(/\{[^]*\}/); return m ? tryParse(m[0]) : null; })();
+
+    const parsed: ParsedVehicle = {
       typ: null, marke: null, modell: null, baujahr: null,
       km_stand: null, preis: null, farbe: null, notizen: null,
+      ...(extracted ?? {}),
     };
-    try {
-      let jsonStr = content.trim();
-      jsonStr = jsonStr.replace(/^```(?:json)?\s*/im, "").replace(/\s*```\s*$/m, "").trim();
-      if (!jsonStr.startsWith("{")) {
-        const match = jsonStr.match(/\{[\s\S]*\}/);
-        if (match) jsonStr = match[0];
-      }
-      parsed = { ...parsed, ...JSON.parse(jsonStr) };
-    } catch { /* keep defaults */ }
 
     const normalize = (val: unknown): string | null => {
       if (val === null || val === undefined) return null;
