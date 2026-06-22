@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("demo");
+  const [password, setPassword] = useState("demo1234");
   const [showPassword, setShowPassword] = useState(false); // State für Sichtbarkeit
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -77,6 +77,14 @@ export default function LoginPage() {
             className="bg-white text-black font-semibold rounded-lg py-3 hover:bg-neutral-200 transition disabled:opacity-50"
           >
             {loading ? "..." : "Einloggen"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setUsername("demo"); setPassword("demo1234"); }}
+            className="text-neutral-400 text-sm border border-neutral-700 rounded-lg py-2 hover:border-neutral-500 hover:text-neutral-200 transition"
+          >
+            Fill demo credentials
           </button>
         </div>
       </div>
