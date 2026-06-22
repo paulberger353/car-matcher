@@ -38,6 +38,7 @@ export default function VehiclesPage() {
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [matchNotification, setMatchNotification] = useState<number | null>(null);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -192,8 +193,29 @@ export default function VehiclesPage() {
           vehicle={editingVehicle}
           brokers={brokers}
           onClose={() => setIsModalOpen(false)}
-          onSuccess={() => { setIsModalOpen(false); fetchData(); }}
+          onSuccess={(matchCount) => {
+            setIsModalOpen(false);
+            fetchData();
+            if (matchCount > 0) {
+              setMatchNotification(matchCount);
+              setTimeout(() => setMatchNotification(null), 6000);
+            }
+          }}
         />
+      )}
+
+      {matchNotification !== null && (
+        <div
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl text-sm shadow-xl"
+          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--accent)", color: "var(--text-primary)" }}
+        >
+          <span style={{ color: "var(--success)", fontWeight: 700 }}>✓</span>
+          <span>
+            <strong>{matchNotification}</strong> potential match{matchNotification !== 1 ? "es" : ""} found
+          </span>
+          <a href="/dashboard/matches" className="font-semibold" style={{ color: "var(--accent)" }}>View →</a>
+          <button onClick={() => setMatchNotification(null)} className="ml-1" style={{ color: "var(--text-tertiary)" }}>✕</button>
+        </div>
       )}
     </div>
   );
@@ -222,7 +244,7 @@ function Row({ label, value }: { label: string; value: string }) {
 
 /* ─── Vehicle Modal ────────────────────────────────────────────────────────── */
 function VehicleModal({ vehicle, brokers, onClose, onSuccess }: {
-  vehicle: Vehicle | null; brokers: Broker[]; onClose: () => void; onSuccess: () => void;
+  vehicle: Vehicle | null; brokers: Broker[]; onClose: () => void; onSuccess: (matchCount: number) => void;
 }) {
   const [activeTab, setActiveTab] = useState<"manual" | "parse">("manual");
   const [form, setForm] = useState({
@@ -263,8 +285,16 @@ function VehicleModal({ vehicle, brokers, onClose, onSuccess }: {
       const method = vehicle ? "PUT" : "POST";
       const url = vehicle ? `/api/vehicles/${vehicle.id}` : "/api/vehicles";
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ typ: form.typ, marke: form.marke, modell: form.modell, baujahr: form.baujahr ? parseInt(form.baujahr) : null, km_stand: form.km_stand ? parseInt(form.km_stand) : null, preis: form.preis ? parseInt(form.preis) : null, farbe: form.farbe || null, broker_id: form.broker_id ? parseInt(form.broker_id) : null, notizen: form.notizen || null }) });
-      if (res.ok) onSuccess();
-      else { const d = await res.json() as { error?: string }; setError(d.error || "Failed to save"); }
+      if (res.ok) {
+        let matchCount = 0;
+        if (!vehicle) {
+          try {
+            const mr = await fetch(`/api/vehicles/check-matches?typ=${form.typ}&marke=${encodeURIComponent(form.marke)}`);
+            if (mr.ok) matchCount = ((await mr.json()) as { count: number }).count;
+          } catch { /* ignore */ }
+        }
+        onSuccess(matchCount);
+      } else { const d = await res.json() as { error?: string }; setError(d.error || "Failed to save"); }
     } catch { setError("Failed to save"); }
     finally { setSubmitting(false); }
   }
