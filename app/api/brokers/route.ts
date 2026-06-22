@@ -29,11 +29,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { name } = await req.json() as { name: string };
+  const body = await req.json() as {
+    name: string; firma?: string | null; telefon?: string | null;
+    email?: string | null; notizen?: string | null;
+  };
 
-  if (!name) {
+  if (!body.name) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
-  return NextResponse.json({ success: true, id: 999 });
+  const newId = brokers.length > 0 ? Math.max(...brokers.map((b) => b.id)) + 1 : 1;
+  brokers.push({
+    id: newId,
+    name: body.name,
+    firma: body.firma ?? null,
+    telefon: body.telefon ?? null,
+    email: body.email ?? null,
+    notizen: body.notizen ?? null,
+    created_at: new Date().toISOString(),
+  });
+  return NextResponse.json({ success: true, id: newId });
 }

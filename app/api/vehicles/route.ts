@@ -39,11 +39,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { typ, marke, modell } = await req.json() as { typ: string; marke: string; modell: string };
+  const body = await req.json() as {
+    typ: string; marke: string; modell: string;
+    baujahr?: number | null; km_stand?: number | null; preis?: number | null;
+    farbe?: string | null; broker_id?: number | null; notizen?: string | null;
+  };
 
-  if (!typ || !marke || !modell) {
+  if (!body.typ || !body.marke || !body.modell) {
     return NextResponse.json({ error: "Type, make and model are required" }, { status: 400 });
   }
 
-  return NextResponse.json({ success: true, id: 999 });
+  const newId = vehicles.length > 0 ? Math.max(...vehicles.map((v) => v.id)) + 1 : 1;
+  vehicles.push({
+    id: newId,
+    typ: body.typ,
+    marke: body.marke,
+    modell: body.modell,
+    baujahr: body.baujahr ?? null,
+    km_stand: body.km_stand ?? null,
+    preis: body.preis ?? null,
+    farbe: body.farbe ?? null,
+    broker_id: body.broker_id ?? null,
+    notizen: body.notizen ?? null,
+    created_at: new Date().toISOString(),
+  });
+  return NextResponse.json({ success: true, id: newId });
 }
