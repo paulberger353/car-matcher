@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
 
-const SYSTEM_PROMPT = `You are a vehicle data extraction expert. Extract structured vehicle data from the input text.
+const SYSTEM_PROMPT = `You are a vehicle data extraction expert. Extract structured vehicle data from the input text and respond ONLY with a valid JSON object — no markdown, no explanation, no code blocks.
 
 FIELD RULES:
 
@@ -35,34 +35,24 @@ notizen — Only extras NOT covered by other fields: equipment list, condition (
 
 EXAMPLES:
 
-Input: "Biete BMW M3 Competition, Bj. 2022, 15.200 km, Frozen Black Metallic, 84.900€ VB, Carbon-Paket, unfallfrei, Scheckheft gepflegt"
-Output: {"typ":"angebot","marke":"BMW","modell":"M3 Competition","baujahr":2022,"km_stand":15200,"preis":84900,"farbe":"Frozen Black Metallic","notizen":"Carbon-Paket, unfallfrei, Scheckheft gepflegt"}
+Input: "Biete BMW M3 Competition, Bj. 2022, 15.2tkm, Frozen Black Met., 84,9k VB, Carbon-Paket, unfallfrei, 1. Hd."
+Output: {"typ":"angebot","marke":"BMW","modell":"M3 Competition","baujahr":2022,"km_stand":15200,"preis":84900,"farbe":"Frozen Black Metallic","notizen":"Carbon-Paket, unfallfrei, 1. Hand"}
 
 Input: "Suche Porsche 911 GT3 (992), max Bj. 2022, max 15.000 km, Budget bis 195.000€"
 Output: {"typ":"gesuch","marke":"Porsche","modell":"911 GT3","baujahr":2022,"km_stand":15000,"preis":195000,"farbe":null,"notizen":null}
 
-Input: "Mercedes S63 AMG 4MATIC+ 2021, 22.400km, Obsidian Black Metallic, 148.500€, Burmester 3D Surround, Panorama-Schiebedach, HUD, 1 Vorbesitzer"
-Output: {"typ":"angebot","marke":"Mercedes-Benz","modell":"S63 AMG 4MATIC+","baujahr":2021,"km_stand":22400,"preis":148500,"farbe":"Obsidian Black Metallic","notizen":"Burmester 3D Surround, Panorama-Schiebedach, HUD, 1 Vorbesitzer"}
+Input: "Mercedes S63 AMG 4MATIC+ 2021, 22.400km, Obsidian Black Metallic, 148.500€, Burmester 3D, Pano, HUD, 1 Vorbesitzer"
+Output: {"typ":"angebot","marke":"Mercedes-Benz","modell":"S63 AMG 4MATIC+","baujahr":2021,"km_stand":22400,"preis":148500,"farbe":"Obsidian Black Metallic","notizen":"Burmester 3D Surround, Panoramadach, HUD, 1 Vorbesitzer"}
 
-Input: "Looking for a Ferrari 488 GTB, 2019 or newer, under 30000 miles, up to €220,000"
-Output: {"typ":"gesuch","marke":"Ferrari","modell":"488 GTB","baujahr":2019,"km_stand":30000,"preis":220000,"farbe":null,"notizen":null}
+Input: "Looking for a Ferrari 488 GTB, 2019 or newer, under 30000 miles, up to $230,000"
+Output: {"typ":"gesuch","marke":"Ferrari","modell":"488 GTB","baujahr":2019,"km_stand":30000,"preis":211600,"farbe":null,"notizen":null}
 
-Input: "Lamborghini Huracán LP 610-4, 2019, 18.500 km, Giallo Orion, 198.000€, Liftsystem, Kamera, keine Mängel"
-Output: {"typ":"angebot","marke":"Lamborghini","modell":"Huracán LP 610-4","baujahr":2019,"km_stand":18500,"preis":198000,"farbe":"Giallo Orion","notizen":"Liftsystem, Rückfahrkamera, keine Mängel"}`;
+Input: "Hallo, verkaufe meinen Lambo Huracan LP610 Bj 19, Giallo Orion, 18.500km, Liftsystem, 198k€. Tel: +49 151 12345678"
+Output: {"typ":"angebot","marke":"Lamborghini","modell":"Huracán LP 610-4","baujahr":2019,"km_stand":18500,"preis":198000,"farbe":"Giallo Orion","notizen":"Liftsystem"}`;
 
-const RESPONSE_SCHEMA = {
-  type: "OBJECT",
-  properties: {
-    typ:      { type: "STRING", enum: ["angebot", "gesuch"] },
-    marke:    { type: "STRING", nullable: true },
-    modell:   { type: "STRING", nullable: true },
-    baujahr:  { type: "INTEGER", nullable: true },
-    km_stand: { type: "INTEGER", nullable: true },
-    preis:    { type: "INTEGER", nullable: true },
-    farbe:    { type: "STRING", nullable: true },
-    notizen:  { type: "STRING", nullable: true },
-  },
-  required: ["typ", "marke", "modell", "baujahr", "km_stand", "preis", "farbe", "notizen"],
+type GroqResponse = {
+  choices?: { message: { content: string } }[];
+  error?: { message: string };
 };
 
 type ParsedVehicle = {
@@ -74,11 +64,6 @@ type ParsedVehicle = {
   preis: number | null;
   farbe: string | null;
   notizen: string | null;
-};
-
-type GeminiResponse = {
-  candidates?: { content: { parts: { text: string }[] } }[];
-  error?: { message: string };
 };
 
 export async function POST(req: NextRequest) {
@@ -94,44 +79,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Text is required" }, { status: 400 });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return NextResponse.json({
-      error: "AI Parse is not configured. Add GEMINI_API_KEY to .env.local.",
+      error: "AI Parse is not configured. Add GROQ_API_KEY to .env.local.",
       data: {},
     }, { status: 200 });
   }
 
   try {
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [{ role: "user", parts: [{ text }] }],
-          generationConfig: {
-            temperature: 0,
-            responseMimeType: "application/json",
-            responseSchema: RESPONSE_SCHEMA,
-          },
-        }),
-      }
-    );
+    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: text },
+        ],
+        temperature: 0,
+        response_format: { type: "json_object" },
+      }),
+    });
 
-    const geminiData = await geminiRes.json() as GeminiResponse;
+    const groqData = await groqRes.json() as GroqResponse;
 
-    if (geminiData.error) {
-      console.error("Gemini API error:", geminiData.error.message);
-      const isQuota = geminiData.error.message?.includes("quota") || geminiData.error.message?.includes("429");
-      const msg = isQuota
-        ? "Gemini quota exceeded. Enable billing at console.cloud.google.com for your API key project."
-        : `AI error: ${geminiData.error.message}`;
-      return NextResponse.json({ error: msg, data: {} }, { status: 200 });
+    if (groqData.error) {
+      console.error("Groq API error:", groqData.error.message);
+      return NextResponse.json({ error: `AI error: ${groqData.error.message}`, data: {} }, { status: 200 });
     }
 
-    const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
+    const content = groqData.choices?.[0]?.message?.content ?? "{}";
 
     let parsed: ParsedVehicle = {
       typ: null, marke: null, modell: null, baujahr: null,
@@ -140,7 +121,7 @@ export async function POST(req: NextRequest) {
     try {
       parsed = { ...parsed, ...JSON.parse(content) };
     } catch {
-      /* schema-enforced JSON should never fail, but keep fallback */
+      /* keep defaults */
     }
 
     const normalize = (val: unknown): string | null => {
