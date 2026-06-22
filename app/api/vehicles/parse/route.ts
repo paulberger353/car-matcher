@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,7 +124,11 @@ export async function POST(req: NextRequest) {
 
     if (geminiData.error) {
       console.error("Gemini API error:", geminiData.error.message);
-      return NextResponse.json({ error: `AI error: ${geminiData.error.message}`, data: {} }, { status: 200 });
+      const isQuota = geminiData.error.message?.includes("quota") || geminiData.error.message?.includes("429");
+      const msg = isQuota
+        ? "Gemini quota exceeded. Enable billing at console.cloud.google.com for your API key project."
+        : `AI error: ${geminiData.error.message}`;
+      return NextResponse.json({ error: msg, data: {} }, { status: 200 });
     }
 
     const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
