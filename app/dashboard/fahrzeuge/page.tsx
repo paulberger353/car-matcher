@@ -3,332 +3,228 @@
 import { useState, useEffect } from "react";
 
 type Vehicle = {
-  id: number;
-  typ: string;
-  marke: string;
-  modell: string;
-  baujahr: number | null;
-  km_stand: number | null;
-  preis: number | null;
-  farbe: string | null;
-  broker_id: number | null;
-  broker_name: string | null;
-  notizen: string | null;
-  created_at: string;
+  id: number; typ: string; marke: string; modell: string;
+  baujahr: number | null; km_stand: number | null; preis: number | null;
+  farbe: string | null; broker_id: number | null; broker_name: string | null;
+  notizen: string | null; created_at: string;
 };
-
-type Broker = {
-  id: number;
-  name: string;
-  vehicle_count: number;
-};
-
+type Broker = { id: number; name: string; vehicle_count: number };
 type ParsedVehicleData = {
-  typ?: string | null;
-  marke?: string | null;
-  modell?: string | null;
-  baujahr?: number | null;
-  km_stand?: number | null;
-  preis?: number | null;
-  farbe?: string | null;
-  notizen?: string | null;
+  typ?: string | null; marke?: string | null; modell?: string | null;
+  baujahr?: number | null; km_stand?: number | null; preis?: number | null;
+  farbe?: string | null; notizen?: string | null;
 };
 
 const PlusIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-  </svg>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 );
-
 const EditIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-  </svg>
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
 );
-
 const DeleteIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-  </svg>
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+);
+const CloseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 );
 
-export default function FahrzeugeSeite() {
+type Filter = "alle" | "angebot" | "gesuch";
+
+export default function VehiclesPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [brokers, setBrokers] = useState<Broker[]>([]);
-  const [filter, setFilter] = useState("alle");
+  const [filter, setFilter] = useState<Filter>("alle");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   async function fetchData() {
     setLoading(true);
     try {
-      const [vehiclesRes, brokersRes] = await Promise.all([
-        fetch("/api/vehicles"),
-        fetch("/api/brokers"),
-      ]);
-
-      if (vehiclesRes.ok) {
-        const data = await vehiclesRes.json() as { vehicles: Vehicle[] };
-        setVehicles(data.vehicles || []);
-      }
-
-      if (brokersRes.ok) {
-        const data = await brokersRes.json() as { brokers: Broker[] };
-        setBrokers(data.brokers || []);
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-      setError("Fehler beim Laden der Daten");
-    } finally {
-      setLoading(false);
-    }
+      const [vRes, bRes] = await Promise.all([fetch("/api/vehicles"), fetch("/api/brokers")]);
+      if (vRes.ok) setVehicles((await vRes.json() as { vehicles: Vehicle[] }).vehicles || []);
+      if (bRes.ok) setBrokers((await bRes.json() as { brokers: Broker[] }).brokers || []);
+    } catch { setError("Failed to load data"); }
+    finally { setLoading(false); }
   }
 
   async function deleteVehicle(id: number) {
-    if (!confirm("Fahrzeug wirklich löschen?")) return;
-
-    try {
-      const res = await fetch(`/api/vehicles/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        setVehicles((prev) => prev.filter((v) => v.id !== id));
-      } else {
-        setError("Fehler beim Löschen");
-      }
-    } catch (error) {
-      setError("Fehler beim Löschen");
-    }
+    if (!confirm("Delete this vehicle?")) return;
+    const res = await fetch(`/api/vehicles/${id}`, { method: "DELETE" });
+    if (res.ok) setVehicles((p) => p.filter((v) => v.id !== id));
+    else setError("Failed to delete");
   }
 
-  const filteredVehicles = vehicles.filter(
-    (v) => filter === "alle" || v.typ === filter
-  );
+  const filtered = vehicles.filter((v) => filter === "alle" || v.typ === filter);
+  const filterOptions: { key: Filter; label: string }[] = [
+    { key: "alle", label: "All" },
+    { key: "angebot", label: "Listings" },
+    { key: "gesuch", label: "Requests" },
+  ];
 
   return (
     <div className="p-6 md:p-8 space-y-6">
+
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-bold text-[#f0f0f5] mb-1">Fahrzeuge</h1>
-          <p className="text-[#9898a8]">{filteredVehicles.length} Fahrzeuge</p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          {filtered.length} vehicle{filtered.length !== 1 ? "s" : ""}
+        </p>
         <button
-          onClick={() => {
-            setEditingVehicle(null);
-            setIsModalOpen(true);
-          }}
-          className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-4 md:px-6 py-2.5 rounded-lg transition flex items-center justify-center md:justify-start gap-2 font-medium"
+          onClick={() => { setEditingVehicle(null); setIsModalOpen(true); }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition"
+          style={{ backgroundColor: "var(--accent)" }}
         >
-          <PlusIcon />
-          <span>Fahrzeug hinzufügen</span>
+          <PlusIcon /> Add vehicle
         </button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2">
-        {(["alle", "angebot", "gesuch"] as const).map((f) => (
+      {/* Filter tabs */}
+      <div className="flex border-b" style={{ borderColor: "var(--border)" }}>
+        {filterOptions.map(({ key, label }) => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg transition font-medium ${
-              filter === f
-                ? "bg-[#8b5cf6] text-white"
-                : "bg-[#1e1e24] text-[#9898a8] hover:text-[#f0f0f5]"
-            }`}
+            key={key}
+            onClick={() => setFilter(key)}
+            className="px-4 py-2.5 text-sm font-medium transition -mb-px"
+            style={filter === key
+              ? { color: "var(--text-primary)", borderBottom: "2px solid var(--accent)" }
+              : { color: "var(--text-secondary)" }
+            }
           >
-            {f === "alle" ? "Alle" : f === "angebot" ? "Angebote" : "Suchen"}
+            {label}
           </button>
         ))}
       </div>
 
-      {/* Error Message */}
+      {/* Error */}
       {error && (
-        <div className="p-4 bg-[#ef4444]/10 border border-[#ef4444] text-[#fca5a5] rounded-lg">
+        <p className="text-sm px-4 py-3 rounded-lg border" style={{ color: "var(--error)", backgroundColor: "var(--error-bg)", borderColor: "var(--error)" }}>
           {error}
-        </div>
+        </p>
       )}
 
       {/* Desktop Table */}
-      <div className="hidden md:block bg-[#1e1e24] border border-[#2a2a35] rounded-xl overflow-hidden">
+      <div className="hidden md:block rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
         {loading ? (
-          <div className="px-6 py-12 text-center text-[#9898a8]">Lädt...</div>
-        ) : filteredVehicles.length > 0 ? (
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-tertiary)" }}>Loading…</div>
+        ) : filtered.length === 0 ? (
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-tertiary)" }}>No vehicles found</div>
+        ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#2a2a35] bg-[#2a2a35]/40">
-                {["Typ", "Marke", "Modell", "Baujahr", "KM", "Preis", "Broker", "Datum", ""].map((h) => (
-                  <th key={h} className="px-6 py-4 text-left text-sm font-semibold text-[#9898a8]">
-                    {h}
-                  </th>
+              <tr className="border-b" style={{ backgroundColor: "var(--surface-subtle)", borderColor: "var(--border)" }}>
+                {["Type", "Make", "Model", "Year", "Mileage", "Price", "Broker", "Added", ""].map((h) => (
+                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filteredVehicles.map((vehicle) => (
-                <tr key={vehicle.id} className="border-b border-[#2a2a35] hover:bg-[#2a2a35]/50 transition">
-                  <td className="px-6 py-4 text-sm">
-                    <span
-                      className={`inline-block px-2 py-1 rounded-md text-xs font-semibold ${
-                        vehicle.typ === "angebot"
-                          ? "bg-[#8b5cf6]/20 text-[#c4b5fd]"
-                          : "bg-blue-500/20 text-blue-300"
-                      }`}
-                    >
-                      {vehicle.typ === "angebot" ? "Angebot" : "Gesucht"}
-                    </span>
+              {filtered.map((v) => (
+                <tr key={v.id} className="border-b last:border-0 transition" style={{ borderColor: "var(--border)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--surface-subtle)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  <td className="px-5 py-3.5">
+                    <TypeBadge typ={v.typ} />
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#f0f0f5]">{vehicle.marke}</td>
-                  <td className="px-6 py-4 text-sm text-[#f0f0f5]">{vehicle.modell}</td>
-                  <td className="px-6 py-4 text-sm text-[#9898a8]">{vehicle.baujahr || "—"}</td>
-                  <td className="px-6 py-4 text-sm text-[#9898a8]">
-                    {vehicle.km_stand ? `${vehicle.km_stand.toLocaleString("de-DE")}` : "—"}
+                  <td className="px-5 py-3.5 text-sm font-medium" style={{ color: "var(--text-primary)" }}>{v.marke}</td>
+                  <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-primary)" }}>{v.modell}</td>
+                  <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-secondary)" }}>{v.baujahr || "—"}</td>
+                  <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-secondary)" }}>
+                    {v.km_stand ? `${v.km_stand.toLocaleString("en-GB")} km` : "—"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#9898a8]">
-                    {vehicle.preis ? `${vehicle.preis.toLocaleString("de-DE")} €` : "—"}
+                  <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-secondary)" }}>
+                    {v.preis ? `€${v.preis.toLocaleString("en-GB")}` : "—"}
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#9898a8]">{vehicle.broker_name || "—"}</td>
-                  <td className="px-6 py-4 text-sm text-[#9898a8]">
-                    {new Date(vehicle.created_at).toLocaleDateString("de-DE")}
+                  <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-secondary)" }}>{v.broker_name || "—"}</td>
+                  <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-tertiary)" }}>
+                    {new Date(v.created_at).toLocaleDateString("en-GB")}
                   </td>
-                  <td className="px-6 py-4 text-sm flex gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingVehicle(vehicle);
-                        setIsModalOpen(true);
-                      }}
-                      className="text-[#8b5cf6] hover:text-[#c4b5fd] transition"
-                    >
-                      <EditIcon />
-                    </button>
-                    <button
-                      onClick={() => deleteVehicle(vehicle.id)}
-                      className="text-[#ef4444] hover:text-[#fca5a5] transition"
-                    >
-                      <DeleteIcon />
-                    </button>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => { setEditingVehicle(v); setIsModalOpen(true); }} style={{ color: "var(--accent)" }} className="transition hover:opacity-70"><EditIcon /></button>
+                      <button onClick={() => deleteVehicle(v.id)} style={{ color: "var(--error)" }} className="transition hover:opacity-70"><DeleteIcon /></button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        ) : (
-          <div className="px-6 py-12 text-center text-[#9898a8]">Keine Fahrzeuge vorhanden</div>
         )}
       </div>
 
       {/* Mobile Cards */}
-      <div className="md:hidden space-y-4">
+      <div className="md:hidden space-y-3">
         {loading ? (
-          <div className="text-center text-[#9898a8]">Lädt...</div>
-        ) : filteredVehicles.length === 0 ? (
-          <div className="text-center text-[#9898a8]">Keine Fahrzeuge vorhanden</div>
+          <p className="text-center text-sm" style={{ color: "var(--text-tertiary)" }}>Loading…</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center text-sm" style={{ color: "var(--text-tertiary)" }}>No vehicles found</p>
         ) : (
-          filteredVehicles.map((vehicle) => (
-            <div key={vehicle.id} className="bg-[#1e1e24] border border-[#2a2a35] rounded-xl p-4">
+          filtered.map((v) => (
+            <div key={v.id} className="rounded-xl border p-4" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <p className="text-[#f0f0f5] font-bold text-lg">
-                    {vehicle.marke} {vehicle.modell}
-                  </p>
-                  <span
-                    className={`inline-block px-2 py-1 rounded-md text-xs font-semibold mt-1 ${
-                      vehicle.typ === "angebot"
-                        ? "bg-[#8b5cf6]/20 text-[#c4b5fd]"
-                        : "bg-blue-500/20 text-blue-300"
-                    }`}
-                  >
-                    {vehicle.typ === "angebot" ? "Angebot" : "Gesucht"}
-                  </span>
+                  <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{v.marke} {v.modell}</p>
+                  <div className="mt-1"><TypeBadge typ={v.typ} /></div>
                 </div>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setEditingVehicle(vehicle);
-                      setIsModalOpen(true);
-                    }}
-                    className="text-[#8b5cf6] hover:text-[#c4b5fd] transition p-2"
-                  >
-                    <EditIcon />
-                  </button>
-                  <button
-                    onClick={() => deleteVehicle(vehicle.id)}
-                    className="text-[#ef4444] hover:text-[#fca5a5] transition p-2"
-                  >
-                    <DeleteIcon />
-                  </button>
+                  <button onClick={() => { setEditingVehicle(v); setIsModalOpen(true); }} style={{ color: "var(--accent)" }} className="p-1.5"><EditIcon /></button>
+                  <button onClick={() => deleteVehicle(v.id)} style={{ color: "var(--error)" }} className="p-1.5"><DeleteIcon /></button>
                 </div>
               </div>
-
-              <div className="space-y-2 text-sm">
-                {vehicle.baujahr && (
-                  <div className="flex justify-between">
-                    <span className="text-[#9898a8]">Baujahr:</span>
-                    <span className="text-[#f0f0f5]">{vehicle.baujahr}</span>
-                  </div>
-                )}
-                {vehicle.km_stand && (
-                  <div className="flex justify-between">
-                    <span className="text-[#9898a8]">KM:</span>
-                    <span className="text-[#f0f0f5]">{vehicle.km_stand.toLocaleString("de-DE")}</span>
-                  </div>
-                )}
-                {vehicle.preis && (
-                  <div className="flex justify-between">
-                    <span className="text-[#9898a8]">Preis:</span>
-                    <span className="text-[#f0f0f5]">{vehicle.preis.toLocaleString("de-DE")} €</span>
-                  </div>
-                )}
-                {vehicle.farbe && (
-                  <div className="flex justify-between">
-                    <span className="text-[#9898a8]">Farbe:</span>
-                    <span className="text-[#f0f0f5]">{vehicle.farbe}</span>
-                  </div>
-                )}
-                {vehicle.broker_name && (
-                  <div className="flex justify-between">
-                    <span className="text-[#9898a8]">Broker:</span>
-                    <span className="text-[#f0f0f5]">{vehicle.broker_name}</span>
-                  </div>
-                )}
+              <div className="grid grid-cols-2 gap-1.5 text-xs">
+                {v.baujahr && <Row label="Year" value={String(v.baujahr)} />}
+                {v.km_stand && <Row label="Mileage" value={`${v.km_stand.toLocaleString("en-GB")} km`} />}
+                {v.preis && <Row label="Price" value={`€${v.preis.toLocaleString("en-GB")}`} />}
+                {v.farbe && <Row label="Color" value={v.farbe} />}
+                {v.broker_name && <Row label="Broker" value={v.broker_name} />}
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
         <VehicleModal
           vehicle={editingVehicle}
           brokers={brokers}
           onClose={() => setIsModalOpen(false)}
-          onSuccess={() => {
-            setIsModalOpen(false);
-            fetchData();
-          }}
+          onSuccess={() => { setIsModalOpen(false); fetchData(); }}
         />
       )}
     </div>
   );
 }
 
-function VehicleModal({
-  vehicle,
-  brokers,
-  onClose,
-  onSuccess,
-}: {
-  vehicle: Vehicle | null;
-  brokers: Broker[];
-  onClose: () => void;
-  onSuccess: () => void;
+function TypeBadge({ typ }: { typ: string }) {
+  return typ === "angebot" ? (
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold" style={{ backgroundColor: "var(--accent-subtle)", color: "var(--accent-text)" }}>
+      Listing
+    </span>
+  ) : (
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border" style={{ backgroundColor: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-secondary)" }}>
+      Request
+    </span>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-2">
+      <span style={{ color: "var(--text-tertiary)" }}>{label}</span>
+      <span style={{ color: "var(--text-primary)" }}>{value}</span>
+    </div>
+  );
+}
+
+/* ─── Vehicle Modal ────────────────────────────────────────────────────────── */
+function VehicleModal({ vehicle, brokers, onClose, onSuccess }: {
+  vehicle: Vehicle | null; brokers: Broker[]; onClose: () => void; onSuccess: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"parse" | "manual">("manual");
+  const [activeTab, setActiveTab] = useState<"manual" | "parse">("manual");
   const [form, setForm] = useState({
     typ: vehicle?.typ || "angebot",
     marke: vehicle?.marke || "",
@@ -340,284 +236,153 @@ function VehicleModal({
     broker_id: vehicle?.broker_id?.toString() || "",
     notizen: vehicle?.notizen || "",
   });
-
   const [parseText, setParseText] = useState("");
   const [parsing, setParsing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   async function handleParse() {
-    if (!parseText.trim()) {
-      setError("Bitte Text eingeben");
-      return;
-    }
-
-    setParsing(true);
-    setError("");
-
+    if (!parseText.trim()) return;
+    setParsing(true); setError("");
     try {
-      const res = await fetch("/api/vehicles/parse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: parseText }),
-      });
-
+      const res = await fetch("/api/vehicles/parse", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: parseText }) });
       const data = await res.json() as { data?: ParsedVehicleData; error?: string };
-
       if (data.data && Object.keys(data.data).length > 0) {
         const d = data.data;
-        setForm((prev) => ({
-          typ: d.typ || "angebot",
-          marke: d.marke || "",
-          modell: d.modell || "",
-          baujahr: d.baujahr != null ? String(d.baujahr) : "",
-          km_stand: d.km_stand != null ? String(d.km_stand) : "",
-          preis: d.preis != null ? String(d.preis) : "",
-          farbe: d.farbe || "",
-          broker_id: prev.broker_id,
-          notizen: d.notizen || "",
-        }));
-        setActiveTab("manual");
-        setParseText("");
-      } else if (data.error) {
-        setError(data.error);
-      }
-    } catch (error) {
-      setError("Fehler beim Parsen");
-    } finally {
-      setParsing(false);
-    }
+        setForm((p) => ({ ...p, typ: d.typ || "angebot", marke: d.marke || "", modell: d.modell || "", baujahr: d.baujahr != null ? String(d.baujahr) : "", km_stand: d.km_stand != null ? String(d.km_stand) : "", preis: d.preis != null ? String(d.preis) : "", farbe: d.farbe || "", notizen: d.notizen || "" }));
+        setActiveTab("manual"); setParseText("");
+      } else { setError(data.error || "Parse failed"); }
+    } catch { setError("Parse error"); }
+    finally { setParsing(false); }
   }
 
   async function handleSubmit() {
-    if (!form.marke || !form.modell) {
-      setError("Marke und Modell sind erforderlich");
-      return;
-    }
-
-    setSubmitting(true);
-    setError("");
-
+    if (!form.marke || !form.modell) { setError("Make and model are required"); return; }
+    setSubmitting(true); setError("");
     try {
       const method = vehicle ? "PUT" : "POST";
       const url = vehicle ? `/api/vehicles/${vehicle.id}` : "/api/vehicles";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          typ: form.typ,
-          marke: form.marke,
-          modell: form.modell,
-          baujahr: form.baujahr ? parseInt(form.baujahr) : null,
-          km_stand: form.km_stand ? parseInt(form.km_stand) : null,
-          preis: form.preis ? parseInt(form.preis) : null,
-          farbe: form.farbe || null,
-          broker_id: form.broker_id ? parseInt(form.broker_id) : null,
-          notizen: form.notizen || null,
-        }),
-      });
-
-      if (res.ok) {
-        onSuccess();
-      } else {
-        const data = await res.json() as { error?: string };
-        setError(data.error || "Fehler beim Speichern");
-      }
-    } catch (error) {
-      setError("Fehler beim Speichern");
-    } finally {
-      setSubmitting(false);
-    }
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ typ: form.typ, marke: form.marke, modell: form.modell, baujahr: form.baujahr ? parseInt(form.baujahr) : null, km_stand: form.km_stand ? parseInt(form.km_stand) : null, preis: form.preis ? parseInt(form.preis) : null, farbe: form.farbe || null, broker_id: form.broker_id ? parseInt(form.broker_id) : null, notizen: form.notizen || null }) });
+      if (res.ok) onSuccess();
+      else { const d = await res.json() as { error?: string }; setError(d.error || "Failed to save"); }
+    } catch { setError("Failed to save"); }
+    finally { setSubmitting(false); }
   }
 
+  const inputStyle = { backgroundColor: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-primary)" };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 md:p-0">
-      <div className="bg-[#1e1e24] border border-[#2a2a35] rounded-xl w-full md:max-w-2xl max-h-[90vh] md:max-h-[85vh] overflow-y-auto flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
+      <div className="w-full md:max-w-2xl max-h-[90vh] flex flex-col rounded-xl border shadow-xl overflow-hidden" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
+
         {/* Header */}
-        <div className="border-b border-[#2a2a35] px-6 py-4 flex items-center justify-between sticky top-0 bg-[#1e1e24]">
-          <h2 className="text-xl font-semibold text-[#f0f0f5]">
-            {vehicle ? "Fahrzeug bearbeiten" : "Fahrzeug hinzufügen"}
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "var(--border)" }}>
+          <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
+            {vehicle ? "Edit vehicle" : "Add vehicle"}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-[#9898a8] hover:text-[#f0f0f5] transition text-2xl leading-none"
-          >
-            ✕
-          </button>
+          <button onClick={onClose} style={{ color: "var(--text-tertiary)" }} className="transition hover:opacity-70"><CloseIcon /></button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {/* Tabs */}
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+
+          {/* Tabs (new vehicle only) */}
           {!vehicle && (
-            <div className="flex gap-2 border-b border-[#2a2a35]">
-              <button
-                onClick={() => setActiveTab("manual")}
-                className={`px-4 py-2 font-medium transition ${
-                  activeTab === "manual"
-                    ? "border-b-2 border-[#8b5cf6] text-[#f0f0f5]"
-                    : "text-[#9898a8]"
-                }`}
-              >
-                Manuell
-              </button>
-              <button
-                onClick={() => setActiveTab("parse")}
-                className={`px-4 py-2 font-medium transition ${
-                  activeTab === "parse"
-                    ? "border-b-2 border-[#8b5cf6] text-[#f0f0f5]"
-                    : "text-[#9898a8]"
-                }`}
-              >
-                KI-Parse
-              </button>
+            <div className="flex border-b" style={{ borderColor: "var(--border)" }}>
+              {(["manual", "parse"] as const).map((tab) => (
+                <button key={tab} onClick={() => setActiveTab(tab)}
+                  className="px-4 py-2 text-sm font-medium transition -mb-px capitalize"
+                  style={activeTab === tab ? { color: "var(--text-primary)", borderBottom: "2px solid var(--accent)" } : { color: "var(--text-secondary)" }}
+                >
+                  {tab === "parse" ? "AI Parse" : "Manual"}
+                </button>
+              ))}
             </div>
           )}
 
-          {/* Parse Tab */}
+          {/* AI Parse */}
           {activeTab === "parse" && !vehicle && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <textarea
                 value={parseText}
                 onChange={(e) => setParseText(e.target.value)}
-                placeholder="Text eingeben (z.B. Fahrtgestellung aus Website kopieren)"
-                className="w-full bg-[#2a2a35] text-[#f0f0f5] rounded-lg px-4 py-3 outline-none border border-[#3a3a40] focus:border-[#8b5cf6] transition min-h-24"
+                placeholder="Paste any vehicle description text — AI will extract the details"
+                className="w-full rounded-lg px-3 py-2.5 text-sm border outline-none min-h-28 resize-none"
+                style={inputStyle}
               />
-              <button
-                onClick={handleParse}
-                disabled={parsing}
-                className="w-full bg-[#8b5cf6] hover:bg-[#7c3aed] disabled:opacity-50 text-white px-4 py-2 rounded-lg transition font-medium"
+              <button onClick={handleParse} disabled={parsing}
+                className="w-full rounded-lg py-2 text-sm font-medium text-white transition disabled:opacity-50"
+                style={{ backgroundColor: "var(--accent)" }}
               >
-                {parsing ? "Wird geparst..." : "Mit KI analysieren"}
+                {parsing ? "Analysing…" : "Analyse with AI"}
               </button>
             </div>
           )}
 
-          {/* Manual Tab */}
+          {/* Manual form */}
           {activeTab === "manual" && (
             <div className="space-y-4">
-              {/* Typ Toggle - großer Toggle am Anfang */}
+              {/* Type toggle */}
               <div>
-                <label className="block text-sm font-medium text-[#9898a8] mb-3">
-                  Fahrzeugtyp *
-                </label>
-                <div className="flex gap-4">
+                <label className="block text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: "var(--text-secondary)" }}>Vehicle type</label>
+                <div className="flex rounded-lg border overflow-hidden" style={{ borderColor: "var(--border)" }}>
                   {(["angebot", "gesuch"] as const).map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => setForm((prev) => ({ ...prev, typ: t }))}
-                      className={`flex-1 px-4 py-4 rounded-lg transition font-medium text-lg ${
-                        form.typ === t
-                          ? "bg-[#8b5cf6] text-white"
-                          : "bg-[#2a2a35] text-[#9898a8] hover:text-[#f0f0f5]"
-                      }`}
+                    <button key={t} onClick={() => setForm((p) => ({ ...p, typ: t }))}
+                      className="flex-1 py-2 text-sm font-medium transition"
+                      style={form.typ === t ? { backgroundColor: "var(--accent)", color: "#fff" } : { backgroundColor: "var(--surface)", color: "var(--text-secondary)" }}
                     >
-                      {t === "angebot" ? "🚗 Angebot" : "🔍 Gesucht"}
+                      {t === "angebot" ? "Listing" : "Request"}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Form Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                  label="Marke *"
-                  value={form.marke}
-                  onChange={(e) => setForm((prev) => ({ ...prev, marke: e.target.value }))}
-                  placeholder="BMW"
-                />
-                <InputField
-                  label="Modell *"
-                  value={form.modell}
-                  onChange={(e) => setForm((prev) => ({ ...prev, modell: e.target.value }))}
-                  placeholder="320i"
-                />
-                <InputField
-                  label="Baujahr"
-                  type="number"
-                  value={form.baujahr}
-                  onChange={(e) => setForm((prev) => ({ ...prev, baujahr: e.target.value }))}
-                  placeholder="2020"
-                />
-                <InputField
-                  label="Kilometerstand"
-                  type="number"
-                  value={form.km_stand}
-                  onChange={(e) => setForm((prev) => ({ ...prev, km_stand: e.target.value }))}
-                  placeholder="50000"
-                />
-                <InputField
-                  label="Preis (€)"
-                  type="number"
-                  value={form.preis}
-                  onChange={(e) => setForm((prev) => ({ ...prev, preis: e.target.value }))}
-                  placeholder="25000"
-                />
-                <InputField
-                  label="Farbe"
-                  value={form.farbe}
-                  onChange={(e) => setForm((prev) => ({ ...prev, farbe: e.target.value }))}
-                  placeholder="Schwarz"
-                />
+              {/* Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Field label="Make *" value={form.marke} onChange={(v) => setForm((p) => ({ ...p, marke: v }))} placeholder="BMW" />
+                <Field label="Model *" value={form.modell} onChange={(v) => setForm((p) => ({ ...p, modell: v }))} placeholder="M3 Competition" />
+                <Field label="Year" type="number" value={form.baujahr} onChange={(v) => setForm((p) => ({ ...p, baujahr: v }))} placeholder="2022" />
+                <Field label="Mileage (km)" type="number" value={form.km_stand} onChange={(v) => setForm((p) => ({ ...p, km_stand: v }))} placeholder="15000" />
+                <Field label="Price (€)" type="number" value={form.preis} onChange={(v) => setForm((p) => ({ ...p, preis: v }))} placeholder="85000" />
+                <Field label="Color" value={form.farbe} onChange={(v) => setForm((p) => ({ ...p, farbe: v }))} placeholder="Frozen Black Metallic" />
               </div>
 
-              {/* Broker Select */}
+              {/* Broker */}
               <div>
-                <label className="block text-sm font-medium text-[#9898a8] mb-2">
-                  Broker
-                </label>
-                <select
-                  value={form.broker_id}
-                  onChange={(e) => setForm((prev) => ({ ...prev, broker_id: e.target.value }))}
-                  className="w-full bg-[#2a2a35] text-[#f0f0f5] rounded-lg px-4 py-2 outline-none border border-[#3a3a40] focus:border-[#8b5cf6] transition"
+                <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "var(--text-secondary)" }}>Broker</label>
+                <select value={form.broker_id} onChange={(e) => setForm((p) => ({ ...p, broker_id: e.target.value }))}
+                  className="w-full rounded-lg px-3 py-2.5 text-sm border outline-none"
+                  style={inputStyle}
                 >
-                  <option value="">— Keine Auswahl —</option>
-                  {brokers.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
+                  <option value="">— No broker —</option>
+                  {brokers.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
               </div>
 
-              {/* Notizen Textarea */}
+              {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-[#9898a8] mb-2">
-                  Notizen
-                </label>
-                <textarea
-                  value={form.notizen}
-                  onChange={(e) => setForm((prev) => ({ ...prev, notizen: e.target.value }))}
-                  placeholder="Zusätzliche Informationen"
-                  className="w-full bg-[#2a2a35] text-[#f0f0f5] rounded-lg px-4 py-3 outline-none border border-[#3a3a40] focus:border-[#8b5cf6] transition min-h-20"
+                <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "var(--text-secondary)" }}>Notes</label>
+                <textarea value={form.notizen} onChange={(e) => setForm((p) => ({ ...p, notizen: e.target.value }))}
+                  placeholder="Equipment, condition, extras…"
+                  className="w-full rounded-lg px-3 py-2.5 text-sm border outline-none min-h-20 resize-none"
+                  style={inputStyle}
                 />
               </div>
             </div>
           )}
 
-          {/* Error Message */}
-          {error && (
-            <div className="p-4 bg-[#ef4444]/10 border border-[#ef4444] text-[#fca5a5] rounded-lg text-sm">
-              {error}
-            </div>
-          )}
+          {error && <p className="text-xs" style={{ color: "var(--error)" }}>{error}</p>}
         </div>
 
         {/* Footer */}
-        <div className="border-t border-[#2a2a35] px-6 py-4 flex gap-3 sticky bottom-0 bg-[#1e1e24]">
-          <button
-            onClick={onClose}
-            className="flex-1 bg-[#2a2a35] hover:bg-[#3a3a40] text-[#f0f0f5] px-4 py-2 rounded-lg transition font-medium"
-          >
-            Abbrechen
+        <div className="flex gap-3 px-5 py-4 border-t" style={{ borderColor: "var(--border)" }}>
+          <button onClick={onClose} className="flex-1 rounded-lg py-2 text-sm font-medium border transition"
+            style={{ backgroundColor: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-primary)" }}>
+            Cancel
           </button>
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="flex-1 bg-[#8b5cf6] hover:bg-[#7c3aed] disabled:opacity-50 text-white px-4 py-2 rounded-lg transition font-medium"
-          >
-            {submitting ? "Speichert..." : "Speichern"}
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 rounded-lg py-2 text-sm font-medium text-white transition disabled:opacity-50"
+            style={{ backgroundColor: "var(--accent)" }}>
+            {submitting ? "Saving…" : "Save"}
           </button>
         </div>
       </div>
@@ -625,30 +390,16 @@ function VehicleModal({
   );
 }
 
-function InputField({
-  label,
-  type = "text",
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  type?: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder?: string;
+function Field({ label, type = "text", value, onChange, placeholder }: {
+  label: string; type?: string; value: string;
+  onChange: (v: string) => void; placeholder?: string;
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-[#9898a8] mb-2">
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="w-full bg-[#2a2a35] text-[#f0f0f5] rounded-lg px-4 py-2 outline-none border border-[#3a3a40] focus:border-[#8b5cf6] transition"
+      <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "var(--text-secondary)" }}>{label}</label>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
+        className="w-full rounded-lg px-3 py-2.5 text-sm border outline-none"
+        style={{ backgroundColor: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-primary)" }}
       />
     </div>
   );

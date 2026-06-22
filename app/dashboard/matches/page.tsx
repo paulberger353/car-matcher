@@ -3,95 +3,60 @@
 import { useState, useEffect } from "react";
 
 type Match = {
-  id: number;
-  score: number;
-  gesehen: number;
-  status: string;
-  status_at: string | null;
-  angebot_marke: string;
-  angebot_modell: string;
-  angebot_broker: string | null;
-  gesuch_marke: string;
-  gesuch_modell: string;
-  gesuch_broker: string | null;
+  id: number; score: number; gesehen: number; status: string; status_at: string | null;
+  angebot_marke: string; angebot_modell: string; angebot_broker: string | null;
+  gesuch_marke: string; gesuch_modell: string; gesuch_broker: string | null;
   created_at: string;
 };
 
 type Filter = "alle" | "neu" | "gesehen" | "vermittelt" | "geplatzt";
 
-function scoreColor(score: number) {
-  if (score >= 75) return { badge: "bg-[#22c55e]/15 text-[#4ade80]", dot: "bg-[#22c55e]" };
-  if (score >= 50) return { badge: "bg-[#f59e0b]/15 text-[#fbbf24]", dot: "bg-[#f59e0b]" };
-  return { badge: "bg-[#ef4444]/15 text-[#f87171]", dot: "bg-[#ef4444]" };
+function scoreStyle(score: number): { bg: string; text: string } {
+  if (score >= 75) return { bg: "var(--success-bg)", text: "var(--success)" };
+  if (score >= 50) return { bg: "var(--warning-bg)", text: "var(--warning)" };
+  return { bg: "var(--error-bg)", text: "var(--error)" };
 }
 
-function scoreLabel(score: number) {
-  if (score >= 75) return "Hohe Übereinstimmung";
-  if (score >= 50) return "Nahezu passend";
-  return "Gering";
-}
-
-export default function MatchesSeite() {
+export default function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
   const [filter, setFilter] = useState<Filter>("alle");
 
-  useEffect(() => {
-    fetchMatches();
-  }, []);
+  useEffect(() => { fetchMatches(); }, []);
 
   async function fetchMatches() {
+    setLoading(true);
     try {
       const res = await fetch("/api/matches");
-      if (res.ok) {
-        const data = await res.json() as { matches: Match[] };
-        setMatches(data.matches || []);
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-    } finally {
-      setLoading(false);
-    }
+      if (res.ok) setMatches((await res.json() as { matches: Match[] }).matches || []);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   }
 
-  async function markGesehen(matchId: number) {
-    setUpdating(matchId);
+  async function markSeen(id: number) {
+    setUpdating(id);
     try {
-      const res = await fetch(`/api/matches/${matchId}/gesehen`, { method: "PUT" });
-      if (res.ok) {
-        setMatches((prev) => prev.map((m) => m.id === matchId ? { ...m, gesehen: 1 } : m));
-      }
-    } catch (error) {
-      console.error("Update error:", error);
-    } finally {
-      setUpdating(null);
-    }
+      const res = await fetch(`/api/matches/${id}/gesehen`, { method: "PUT" });
+      if (res.ok) setMatches((p) => p.map((m) => m.id === id ? { ...m, gesehen: 1 } : m));
+    } finally { setUpdating(null); }
   }
 
-  async function setStatus(matchId: number, status: "vermittelt" | "geplatzt") {
-    setUpdating(matchId);
+  async function setStatus(id: number, status: "vermittelt" | "geplatzt") {
+    setUpdating(id);
     try {
-      const res = await fetch(`/api/matches/${matchId}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      if (res.ok) {
-        setMatches((prev) =>
-          prev.map((m) =>
-            m.id === matchId
-              ? { ...m, status, gesehen: 1, status_at: new Date().toISOString() }
-              : m
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Update error:", error);
-    } finally {
-      setUpdating(null);
-    }
+      const res = await fetch(`/api/matches/${id}/status`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+      if (res.ok) setMatches((p) => p.map((m) => m.id === id ? { ...m, status, gesehen: 1, status_at: new Date().toISOString() } : m));
+    } finally { setUpdating(null); }
   }
+
+  const counts: Record<Filter, number> = {
+    alle: matches.length,
+    neu: matches.filter((m) => m.status === "offen" && !m.gesehen).length,
+    gesehen: matches.filter((m) => m.status === "offen" && !!m.gesehen).length,
+    vermittelt: matches.filter((m) => m.status === "vermittelt").length,
+    geplatzt: matches.filter((m) => m.status === "geplatzt").length,
+  };
 
   const filtered = matches.filter((m) => {
     if (filter === "neu") return m.status === "offen" && !m.gesehen;
@@ -101,176 +66,131 @@ export default function MatchesSeite() {
     return true;
   });
 
-  const counts = {
-    alle: matches.length,
-    neu: matches.filter((m) => m.status === "offen" && !m.gesehen).length,
-    gesehen: matches.filter((m) => m.status === "offen" && !!m.gesehen).length,
-    vermittelt: matches.filter((m) => m.status === "vermittelt").length,
-    geplatzt: matches.filter((m) => m.status === "geplatzt").length,
-  };
-
-  const filterLabels: Record<Filter, string> = {
-    alle: "Alle",
-    neu: "Neu",
-    gesehen: "Gesehen",
-    vermittelt: "Vermittelt",
-    geplatzt: "Geplatzt",
-  };
+  const filterOptions: { key: Filter; label: string }[] = [
+    { key: "alle", label: "All" },
+    { key: "neu", label: "New" },
+    { key: "gesehen", label: "Seen" },
+    { key: "vermittelt", label: "Brokered" },
+    { key: "geplatzt", label: "Cancelled" },
+  ];
 
   return (
     <div className="p-6 md:p-8 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold text-[#f0f0f5] mb-1">Matches</h1>
-        <p className="text-[#9898a8]">
-          {counts.neu > 0 ? `${counts.neu} neu · ` : ""}{matches.length} gesamt
-        </p>
-      </div>
 
-      {/* Filter */}
-      <div className="flex flex-wrap gap-2">
-        {(["alle", "neu", "gesehen", "vermittelt", "geplatzt"] as Filter[]).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg transition font-medium text-sm flex items-center gap-2 ${
-              filter === f
-                ? "bg-[#8b5cf6] text-white"
-                : "bg-[#1e1e24] text-[#9898a8] hover:text-[#f0f0f5]"
-            }`}
+      {/* Header */}
+      <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+        {counts.neu > 0 ? `${counts.neu} new · ` : ""}{matches.length} total
+      </p>
+
+      {/* Filter tabs */}
+      <div className="flex flex-wrap border-b" style={{ borderColor: "var(--border)" }}>
+        {filterOptions.map(({ key, label }) => (
+          <button key={key} onClick={() => setFilter(key)}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition -mb-px"
+            style={filter === key
+              ? { color: "var(--text-primary)", borderBottom: "2px solid var(--accent)" }
+              : { color: "var(--text-secondary)" }
+            }
           >
-            {filterLabels[f]}
-            {counts[f] > 0 && (
-              <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                filter === f ? "bg-white/20" : "bg-[#2a2a35]"
-              }`}>
-                {counts[f]}
+            {label}
+            {counts[key] > 0 && (
+              <span className="text-xs px-1.5 py-0.5 rounded-full"
+                style={{ backgroundColor: filter === key ? "var(--accent-subtle)" : "var(--surface-subtle)", color: "var(--text-secondary)" }}>
+                {counts[key]}
               </span>
             )}
           </button>
         ))}
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden md:block bg-[#1e1e24] border border-[#2a2a35] rounded-xl overflow-hidden">
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
         {loading ? (
-          <div className="px-6 py-12 text-center text-[#9898a8]">Lädt...</div>
-        ) : filtered.length > 0 ? (
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-tertiary)" }}>Loading…</div>
+        ) : filtered.length === 0 ? (
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-tertiary)" }}>No matches in this category</div>
+        ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#2a2a35] bg-[#2a2a35]/40">
-                {["Angebot", "Gesucht", "Score", "Status", "Datum", "Aktionen"].map((h) => (
-                  <th key={h} className="px-6 py-4 text-left text-sm font-semibold text-[#9898a8]">
-                    {h}
-                  </th>
+              <tr className="border-b" style={{ backgroundColor: "var(--surface-subtle)", borderColor: "var(--border)" }}>
+                {["Listing", "Request", "Score", "Status", "Date", "Actions"].map((h) => (
+                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filtered.map((match) => {
-                const colors = scoreColor(match.score);
-                const isUpdating = updating === match.id;
+              {filtered.map((m) => {
+                const ss = scoreStyle(m.score);
                 return (
-                  <tr
-                    key={match.id}
-                    className={`border-b border-[#2a2a35] transition ${
-                      match.status === "offen" && !match.gesehen
-                        ? "bg-[#8b5cf6]/5 hover:bg-[#8b5cf6]/10"
-                        : "hover:bg-[#2a2a35]/30"
-                    }`}
+                  <tr key={m.id} className="border-b last:border-0 transition" style={{ borderColor: "var(--border)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--surface-subtle)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                   >
-                    <td className="px-6 py-4 text-sm">
-                      <p className="text-[#f0f0f5] font-medium">{match.angebot_marke} {match.angebot_modell}</p>
-                      <p className="text-[#9898a8] text-xs mt-0.5">{match.angebot_broker || "—"}</p>
+                    <td className="px-5 py-3.5">
+                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{m.angebot_marke} {m.angebot_modell}</p>
+                      {m.angebot_broker && <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>{m.angebot_broker}</p>}
                     </td>
-                    <td className="px-6 py-4 text-sm">
-                      <p className="text-[#f0f0f5] font-medium">{match.gesuch_marke} {match.gesuch_modell}</p>
-                      <p className="text-[#9898a8] text-xs mt-0.5">{match.gesuch_broker || "—"}</p>
+                    <td className="px-5 py-3.5">
+                      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{m.gesuch_marke} {m.gesuch_modell}</p>
+                      {m.gesuch_broker && <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>{m.gesuch_broker}</p>}
                     </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${colors.badge}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
-                        {match.score}
+                    <td className="px-5 py-3.5">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold"
+                        style={{ backgroundColor: ss.bg, color: ss.text }}>
+                        {m.score}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm">
-                      <StatusBadge match={match} />
+                    <td className="px-5 py-3.5"><StatusBadge match={m} /></td>
+                    <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-tertiary)" }}>
+                      {new Date(m.created_at).toLocaleDateString("en-GB")}
                     </td>
-                    <td className="px-6 py-4 text-sm text-[#9898a8]">
-                      {new Date(match.created_at).toLocaleDateString("de-DE")}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <MatchActions match={match} isUpdating={isUpdating} onGesehen={() => markGesehen(match.id)} onStatus={(s) => setStatus(match.id, s)} />
+                    <td className="px-5 py-3.5">
+                      <MatchActions match={m} isUpdating={updating === m.id} onSeen={() => markSeen(m.id)} onStatus={(s) => setStatus(m.id, s)} />
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
-        ) : (
-          <div className="px-6 py-12 text-center text-[#9898a8]">Keine Matches in dieser Kategorie</div>
         )}
       </div>
 
-      {/* Mobile Cards */}
-      <div className="md:hidden space-y-4">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
         {loading ? (
-          <div className="text-center text-[#9898a8]">Lädt...</div>
+          <p className="text-center text-sm" style={{ color: "var(--text-tertiary)" }}>Loading…</p>
         ) : filtered.length === 0 ? (
-          <div className="text-center text-[#9898a8]">Keine Matches in dieser Kategorie</div>
+          <p className="text-center text-sm" style={{ color: "var(--text-tertiary)" }}>No matches in this category</p>
         ) : (
-          filtered.map((match) => {
-            const colors = scoreColor(match.score);
-            const isUpdating = updating === match.id;
+          filtered.map((m) => {
+            const ss = scoreStyle(m.score);
             return (
-              <div
-                key={match.id}
-                className={`bg-[#1e1e24] border rounded-xl p-4 ${
-                  match.status === "offen" && !match.gesehen
-                    ? "border-[#8b5cf6]/40"
-                    : "border-[#2a2a35]"
-                }`}
-              >
-                {/* Score + Datum */}
-                <div className="flex justify-between items-center mb-3">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${colors.badge}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${colors.dot}`} />
-                    Score {match.score} · {scoreLabel(match.score)}
+              <div key={m.id} className="rounded-xl border p-4 space-y-3" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold"
+                    style={{ backgroundColor: ss.bg, color: ss.text }}>
+                    Score {m.score}
                   </span>
-                  <span className="text-[#9898a8] text-xs">
-                    {new Date(match.created_at).toLocaleDateString("de-DE")}
+                  <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                    {new Date(m.created_at).toLocaleDateString("en-GB")}
                   </span>
                 </div>
-
-                {/* Angebot & Gesucht */}
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div className="bg-[#2a2a35]/60 rounded-lg p-3">
-                    <p className="text-[#8b5cf6] text-xs font-semibold mb-1 uppercase tracking-wide">Angebot</p>
-                    <p className="text-[#f0f0f5] font-medium text-sm">{match.angebot_marke} {match.angebot_modell}</p>
-                    {match.angebot_broker && <p className="text-[#9898a8] text-xs mt-0.5">{match.angebot_broker}</p>}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-lg p-3" style={{ backgroundColor: "var(--surface-subtle)" }}>
+                    <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--accent)" }}>Listing</p>
+                    <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{m.angebot_marke} {m.angebot_modell}</p>
+                    {m.angebot_broker && <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>{m.angebot_broker}</p>}
                   </div>
-                  <div className="bg-[#2a2a35]/60 rounded-lg p-3">
-                    <p className="text-blue-400 text-xs font-semibold mb-1 uppercase tracking-wide">Gesucht</p>
-                    <p className="text-[#f0f0f5] font-medium text-sm">{match.gesuch_marke} {match.gesuch_modell}</p>
-                    {match.gesuch_broker && <p className="text-[#9898a8] text-xs mt-0.5">{match.gesuch_broker}</p>}
+                  <div className="rounded-lg p-3" style={{ backgroundColor: "var(--surface-subtle)" }}>
+                    <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--text-secondary)" }}>Request</p>
+                    <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{m.gesuch_marke} {m.gesuch_modell}</p>
+                    {m.gesuch_broker && <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>{m.gesuch_broker}</p>}
                   </div>
                 </div>
-
-                {/* Status Badge */}
-                <div className="mb-3">
-                  <StatusBadge match={match} />
+                <div className="flex items-center justify-between">
+                  <StatusBadge match={m} />
                 </div>
-
-                {/* Actions */}
-                <div className="space-y-2">
-                  <MatchActions
-                    match={match}
-                    isUpdating={isUpdating}
-                    onGesehen={() => markGesehen(match.id)}
-                    onStatus={(s) => setStatus(match.id, s)}
-                    mobile
-                  />
-                </div>
+                <MatchActions match={m} isUpdating={updating === m.id} onSeen={() => markSeen(m.id)} onStatus={(s) => setStatus(m.id, s)} mobile />
               </div>
             );
           })
@@ -280,107 +200,91 @@ export default function MatchesSeite() {
   );
 }
 
+/* ─── Status Badge ─────────────────────────────────────────────────────────── */
 function StatusBadge({ match }: { match: Match }) {
   if (match.status === "vermittelt") {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-[#22c55e]/15 text-[#4ade80]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e]" />
-        Vermittelt
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold"
+        style={{ backgroundColor: "var(--success-bg)", color: "var(--success)" }}>
+        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "var(--success)" }} />
+        Brokered
       </span>
     );
   }
   if (match.status === "geplatzt") {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-[#ef4444]/15 text-[#f87171]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#ef4444]" />
-        Geplatzt
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold"
+        style={{ backgroundColor: "var(--error-bg)", color: "var(--error)" }}>
+        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "var(--error)" }} />
+        Cancelled
       </span>
     );
   }
   if (match.gesehen) {
-    return <span className="text-[#9898a8] text-xs">Gesehen</span>;
+    return <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>Seen</span>;
   }
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-[#8b5cf6]/15 text-[#c4b5fd]">
-      <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] animate-pulse" />
-      Neu
+    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold"
+      style={{ backgroundColor: "var(--accent-subtle)", color: "var(--accent)" }}>
+      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)" }} />
+      New
     </span>
   );
 }
 
-function MatchActions({
-  match,
-  isUpdating,
-  onGesehen,
-  onStatus,
-  mobile = false,
-}: {
-  match: Match;
-  isUpdating: boolean;
-  onGesehen: () => void;
-  onStatus: (s: "vermittelt" | "geplatzt") => void;
-  mobile?: boolean;
+/* ─── Match Actions ────────────────────────────────────────────────────────── */
+function MatchActions({ match, isUpdating, onSeen, onStatus, mobile = false }: {
+  match: Match; isUpdating: boolean; onSeen: () => void;
+  onStatus: (s: "vermittelt" | "geplatzt") => void; mobile?: boolean;
 }) {
   if (match.status !== "offen") return null;
 
   if (mobile) {
     return (
-      <>
+      <div className="space-y-2">
         {!match.gesehen && (
-          <button
-            onClick={onGesehen}
-            disabled={isUpdating}
-            className="w-full bg-[#2a2a35] hover:bg-[#3a3a40] text-[#9898a8] py-2 rounded-lg transition text-sm disabled:opacity-50"
-          >
-            {isUpdating ? "..." : "Als gesehen markieren"}
+          <button onClick={onSeen} disabled={isUpdating}
+            className="w-full py-2 rounded-lg text-sm transition border disabled:opacity-50"
+            style={{ backgroundColor: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-secondary)" }}>
+            {isUpdating ? "…" : "Mark as seen"}
           </button>
         )}
         <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => onStatus("vermittelt")}
-            disabled={isUpdating}
-            className="bg-[#22c55e]/15 hover:bg-[#22c55e]/25 text-[#4ade80] py-2 rounded-lg transition text-sm font-medium disabled:opacity-50"
-          >
-            {isUpdating ? "..." : "Vermittelt"}
+          <button onClick={() => onStatus("vermittelt")} disabled={isUpdating}
+            className="py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
+            style={{ backgroundColor: "var(--success-bg)", color: "var(--success)" }}>
+            {isUpdating ? "…" : "Brokered"}
           </button>
-          <button
-            onClick={() => onStatus("geplatzt")}
-            disabled={isUpdating}
-            className="bg-[#ef4444]/15 hover:bg-[#ef4444]/25 text-[#f87171] py-2 rounded-lg transition text-sm font-medium disabled:opacity-50"
-          >
-            {isUpdating ? "..." : "Geplatzt"}
+          <button onClick={() => onStatus("geplatzt")} disabled={isUpdating}
+            className="py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
+            style={{ backgroundColor: "var(--error-bg)", color: "var(--error)" }}>
+            {isUpdating ? "…" : "Cancelled"}
           </button>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-1.5 min-w-[140px]">
+    <div className="flex flex-col gap-1.5">
       {!match.gesehen && (
-        <button
-          onClick={onGesehen}
-          disabled={isUpdating}
-          className="text-[#9898a8] hover:text-[#f0f0f5] transition text-xs disabled:opacity-50 text-left"
-        >
-          Als gesehen markieren
+        <button onClick={onSeen} disabled={isUpdating}
+          className="text-xs text-left transition disabled:opacity-50 hover:underline"
+          style={{ color: "var(--text-secondary)" }}>
+          {isUpdating ? "…" : "Mark as seen"}
         </button>
       )}
-      <div className="flex gap-2">
-        <button
-          onClick={() => onStatus("vermittelt")}
-          disabled={isUpdating}
-          className="text-[#4ade80] hover:text-[#22c55e] transition text-xs font-medium disabled:opacity-50"
-        >
-          Vermittelt
+      <div className="flex gap-3">
+        <button onClick={() => onStatus("vermittelt")} disabled={isUpdating}
+          className="text-xs font-medium transition disabled:opacity-50 hover:underline"
+          style={{ color: "var(--success)" }}>
+          Brokered
         </button>
-        <span className="text-[#2a2a35]">|</span>
-        <button
-          onClick={() => onStatus("geplatzt")}
-          disabled={isUpdating}
-          className="text-[#f87171] hover:text-[#ef4444] transition text-xs font-medium disabled:opacity-50"
-        >
-          Geplatzt
+        <span style={{ color: "var(--border)" }}>|</span>
+        <button onClick={() => onStatus("geplatzt")} disabled={isUpdating}
+          className="text-xs font-medium transition disabled:opacity-50 hover:underline"
+          style={{ color: "var(--error)" }}>
+          Cancelled
         </button>
       </div>
     </div>
