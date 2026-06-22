@@ -10,6 +10,9 @@ directory = ".open-next/assets"
 [[custom_domains]]
 pattern = "car.paulberg-software.de"
 
+[vars]
+CLOUDFLARE_ACCOUNT_ID = "8e14786f0fba155ebb3c1a057d7a5cee"
+
 [observability]
 enabled = true
 
