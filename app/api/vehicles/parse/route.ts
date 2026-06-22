@@ -11,27 +11,19 @@ typ — "angebot" (listing / for sale) or "gesuch" (wanted / looking to buy).
   Gesuch keywords: suche, gesucht, wanted, looking for, searching, kaufe, buying.
   Default when unclear: "angebot".
 
-marke — Manufacturer brand. Standardise spelling: "Mercedes" → "Mercedes-Benz", "VW" → "Volkswagen", "Lambo" → "Lamborghini". null if not found.
+marke — Manufacturer brand. Standardise: "Mercedes" → "Mercedes-Benz", "VW" → "Volkswagen", "Lambo" → "Lamborghini". null if not found.
 
-modell — Full model name including all trim/variant info (e.g. "M3 Competition", "911 GT3", "S63 AMG 4MATIC+", "Huracán LP 610-4", "R8 V10 Plus"). null if not found.
+modell — Full model name including trim/variant (e.g. "M3 Competition", "911 GT3", "S63 AMG 4MATIC+", "Huracán LP 610-4"). null if not found.
 
-baujahr — Year of manufacture as integer.
-  Variants: "Bj. 22" → 2022, "22er" → 2022, "'21" → 2021, "2021/22" → 2022, year range "2018-2020" → 2019.
-  For gesuch "2020 or newer" → 2020, "ab 2021" → 2021. null if not mentioned.
+baujahr — Year as integer. "Bj. 22" → 2022, "22er" → 2022, "2021/22" → 2022, range "2018-2020" → 2019, "ab 2021" → 2021. null if not mentioned.
 
-km_stand — Mileage as integer.
-  Formats: "78tkm" → 78000, "78.000 km" → 78000, "98k km" → 98000, "78 Tkm" → 78000.
-  Miles: keep the raw number (e.g. "30000 miles" → 30000); server converts miles→km separately.
-  For gesuch this is the MAXIMUM acceptable mileage. null if not mentioned.
+km_stand — Mileage as integer. "78tkm" → 78000, "78.000 km" → 78000, "98k" → 98000. Miles: keep raw number. For gesuch: maximum acceptable mileage. null if not mentioned.
 
-preis — Price in EUR as integer.
-  Formats: "84.900 €" → 84900, "85k" → 85000, "VB 85.000" → 85000, "ca. 90.000" → 90000.
-  Ranges: for angebot use lower bound; for gesuch use upper bound.
-  Currency: USD → multiply by 0.92; GBP → multiply by 1.17. Round to integer. null if not mentioned.
+preis — Price in EUR as integer. "84.900€" → 84900, "85k" → 85000, "VB 85.000" → 85000. Ranges: angebot → lower bound, gesuch → upper bound. USD × 0.92, GBP × 1.17. null if not mentioned.
 
-farbe — Single colour only. Preserve full brand colour names ("Frozen Black Metallic", "Giallo Orion", "Rosso Corsa", "Obsidian Black Metallic"). If multiple colours mentioned use the first. null if not mentioned.
+farbe — Single colour, preserve brand names ("Frozen Black Metallic", "Giallo Orion"). null if not mentioned.
 
-notizen — Only extras NOT covered by other fields: equipment list, condition (unfallfrei, Unfallschaden), service history, modifications, number of owners, special features. Do NOT repeat make, model, year, mileage, price, or colour here. null if nothing extra.
+notizen — Only extras not covered above: equipment, condition, service history, owners. Do NOT repeat make/model/year/mileage/price/colour. null if nothing extra.
 
 EXAMPLES:
 
@@ -44,26 +36,19 @@ Output: {"typ":"gesuch","marke":"Porsche","modell":"911 GT3","baujahr":2022,"km_
 Input: "Mercedes S63 AMG 4MATIC+ 2021, 22.400km, Obsidian Black Metallic, 148.500€, Burmester 3D, Pano, HUD, 1 Vorbesitzer"
 Output: {"typ":"angebot","marke":"Mercedes-Benz","modell":"S63 AMG 4MATIC+","baujahr":2021,"km_stand":22400,"preis":148500,"farbe":"Obsidian Black Metallic","notizen":"Burmester 3D Surround, Panoramadach, HUD, 1 Vorbesitzer"}
 
-Input: "Looking for a Ferrari 488 GTB, 2019 or newer, under 30000 miles, up to $230,000"
-Output: {"typ":"gesuch","marke":"Ferrari","modell":"488 GTB","baujahr":2019,"km_stand":30000,"preis":211600,"farbe":null,"notizen":null}
-
 Input: "Hallo, verkaufe meinen Lambo Huracan LP610 Bj 19, Giallo Orion, 18.500km, Liftsystem, 198k€. Tel: +49 151 12345678"
 Output: {"typ":"angebot","marke":"Lamborghini","modell":"Huracán LP 610-4","baujahr":2019,"km_stand":18500,"preis":198000,"farbe":"Giallo Orion","notizen":"Liftsystem"}`;
 
-type GroqResponse = {
-  choices?: { message: { content: string } }[];
-  error?: { message: string };
+type CFAIResponse = {
+  result?: { response: string };
+  success?: boolean;
+  errors?: { message: string }[];
 };
 
 type ParsedVehicle = {
-  typ: string | null;
-  marke: string | null;
-  modell: string | null;
-  baujahr: number | null;
-  km_stand: number | null;
-  preis: number | null;
-  farbe: string | null;
-  notizen: string | null;
+  typ: string | null; marke: string | null; modell: string | null;
+  baujahr: number | null; km_stand: number | null; preis: number | null;
+  farbe: string | null; notizen: string | null;
 };
 
 export async function POST(req: NextRequest) {
@@ -79,50 +64,52 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Text is required" }, { status: 400 });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const aiToken   = process.env.CLOUDFLARE_AI_TOKEN;
+
+  if (!accountId || !aiToken) {
     return NextResponse.json({
-      error: "AI Parse is not configured. Add GROQ_API_KEY to .env.local.",
+      error: "AI Parse is not configured. Add CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_AI_TOKEN to .env.local.",
       data: {},
     }, { status: 200 });
   }
 
   try {
-    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: text },
-        ],
-        temperature: 0,
-        response_format: { type: "json_object" },
-      }),
-    });
+    const cfRes = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/meta/llama-3.1-8b-instruct`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${aiToken}`,
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: text },
+          ],
+        }),
+      }
+    );
 
-    const groqData = await groqRes.json() as GroqResponse;
+    const cfData = await cfRes.json() as CFAIResponse;
 
-    if (groqData.error) {
-      console.error("Groq API error:", groqData.error.message);
-      return NextResponse.json({ error: `AI error: ${groqData.error.message}`, data: {} }, { status: 200 });
+    if (!cfData.success || cfData.errors?.length) {
+      const msg = cfData.errors?.[0]?.message ?? "Unknown error";
+      console.error("Cloudflare AI error:", msg);
+      return NextResponse.json({ error: `AI error: ${msg}`, data: {} }, { status: 200 });
     }
 
-    const content = groqData.choices?.[0]?.message?.content ?? "{}";
+    const content = cfData.result?.response ?? "{}";
 
     let parsed: ParsedVehicle = {
       typ: null, marke: null, modell: null, baujahr: null,
       km_stand: null, preis: null, farbe: null, notizen: null,
     };
     try {
-      parsed = { ...parsed, ...JSON.parse(content) };
-    } catch {
-      /* keep defaults */
-    }
+      const cleaned = content.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+      parsed = { ...parsed, ...JSON.parse(cleaned) };
+    } catch { /* keep defaults */ }
 
     const normalize = (val: unknown): string | null => {
       if (val === null || val === undefined) return null;
