@@ -7,8 +7,8 @@ const SYSTEM_PROMPT = `You are a vehicle data extraction expert. Extract structu
 FIELD RULES:
 
 typ — "angebot" (listing / for sale) or "gesuch" (wanted / looking to buy).
-  Angebot: biete, verkaufe, zu verkaufen, for sale, selling, sell, offering, offer, angebot, zu haben.
-  Gesuch: suche, gesucht, wanted, looking for, searching, kaufe, buying, looking to buy, interested in.
+  Angebot (any language): biete, verkaufe, zu verkaufen, for sale, selling, sell, offering, offer, angebot, zu haben, vendo, je vends, vends, te koop, vend, verkoop.
+  Gesuch (any language): suche, gesucht, wanted, looking for, searching, kaufe, buying, looking to buy, interested in, cerco, cherche, busco, zoek, ricerca, recherche.
   Default when unclear: "angebot".
 
 marke — Manufacturer brand. Standardise and infer from model when brand is omitted:
@@ -34,7 +34,9 @@ preis — Price in EUR as integer.
   Currency: USD × 0.92, GBP × 1.17, CHF × 0.97. Round to nearest integer. null if not mentioned.
 
 farbe — Single colour, preserve brand colour names ("Frozen Black Metallic", "Giallo Orion", "Corris Grey").
-  Expand: "sw" → "Schwarz"; "ws" → "Weiß"; "si" → "Silber"; "bl" → "Blau"; "gr" → "Grau"; "rt" → "Rot".
+  Abbreviations: "sw" → "Schwarz"; "ws" → "Weiß"; "si" → "Silber"; "bl" → "Blau"; "gr" → "Grau"; "rt" → "Rot".
+  German full names: schwarz, weiß, silber, grau, blau, rot, gelb, grün, orange, braun, beige, lila, violett → capitalise first letter (e.g. "gelb" → "Gelb").
+  Other languages: noir/noire → "Schwarz"; blanc/blanche → "Weiß"; rouge → "Rot"; bleu/bleue → "Blau"; gris/grise → "Grau"; jaune → "Gelb"; nero → "Schwarz"; bianco → "Weiß"; rosso → "Rot"; grigio → "Grau"; giallo → "Gelb"; negro/negro → "Schwarz".
   null if not mentioned.
 
 notizen — Only extras not in other fields: equipment, condition, service history, number of owners.
@@ -60,7 +62,13 @@ Input: "Selling my 2019 Range Rover Sport SVR, 32,000 miles, Corris Grey, £74,5
 Output: {"typ":"angebot","marke":"Land Rover","modell":"Range Rover Sport SVR","baujahr":2019,"km_stand":32000,"preis":87165,"farbe":"Corris Grey","notizen":"Full dealer service history, 22-inch alloys, panoramic roof"}
 
 Input: "M5 Comp 21er 8tkm sw 105k VB 1HD NR SHlü"
-Output: {"typ":"angebot","marke":"BMW","modell":"M5 Competition","baujahr":2021,"km_stand":8000,"preis":105000,"farbe":"Schwarz","notizen":"1. Hand, Nichtraucher, Scheckheft lückenlos"}`;
+Output: {"typ":"angebot","marke":"BMW","modell":"M5 Competition","baujahr":2021,"km_stand":8000,"preis":105000,"farbe":"Schwarz","notizen":"1. Hand, Nichtraucher, Scheckheft lückenlos"}
+
+Input: "Suche Ferrari F40, mit maximal 40k km und in gelb"
+Output: {"typ":"gesuch","marke":"Ferrari","modell":"F40","baujahr":null,"km_stand":40000,"preis":null,"farbe":"Gelb","notizen":null}
+
+Input: "Je vends Porsche Taycan Turbo S 2022, 12.000 km, rouge, 165.000€. Toit panoramique, chargeur rapide, cuir intégral."
+Output: {"typ":"angebot","marke":"Porsche","modell":"Taycan Turbo S","baujahr":2022,"km_stand":12000,"preis":165000,"farbe":"Rot","notizen":"Panoramadach, Schnelllader, Vollleder"}`;
 
 type CFAIResponse = {
   result?: { response: string };
