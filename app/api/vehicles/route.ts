@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
-import { runMatching } from "@/lib/matching";
+import { vehicles, matches, getBrokerName } from "@/lib/data";
 
 export async function GET(req: NextRequest) {
   const cookieStore = await cookies();
@@ -12,48 +11,24 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = env.DB;
-
-  // Get query parameters
   const searchParams = req.nextUrl.searchParams;
   const limit = searchParams.get("limit");
   const typ = searchParams.get("typ");
 
-  try {
-    let query = `SELECT v.*, b.name as broker_name FROM vehicles v 
-                 LEFT JOIN brokers b ON v.broker_id = b.id`;
-    const params: (string | number)[] = [];
+  let result = [...vehicles].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 
-    // Add filter for typ if specified
-    if (typ && (typ === "angebot" || typ === "gesuch")) {
-      query += ` WHERE v.typ = ?`;
-      params.push(typ);
-    }
-
-    query += ` ORDER BY v.created_at DESC`;
-
-    // Add limit if specified
-    if (limit && !isNaN(parseInt(limit))) {
-      query += ` LIMIT ?`;
-      params.push(parseInt(limit));
-    }
-
-    let preparedQuery = db.prepare(query);
-    if (params.length > 0) {
-      preparedQuery = preparedQuery.bind(...params);
-    }
-
-    const vehicles = await preparedQuery.all();
-
-    return NextResponse.json({ vehicles: vehicles.results || [] });
-  } catch (error) {
-    console.error("Get vehicles error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch vehicles" },
-      { status: 500 }
-    );
+  if (typ === "angebot" || typ === "gesuch") {
+    result = result.filter((v) => v.typ === typ);
   }
+
+  if (limit && !isNaN(parseInt(limit))) {
+    result = result.slice(0, parseInt(limit));
+  }
+
+  const withBroker = result.map((v) => ({ ...v, broker_name: getBrokerName(v.broker_id) }));
+  return NextResponse.json({ vehicles: withBroker });
 }
 
 export async function POST(req: NextRequest) {
@@ -64,65 +39,52 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { typ, marke, modell, baujahr, km_stand, preis, farbe, broker_id, notizen } =
-    await req.json() as {
-      typ: string; marke: string; modell: string;
-      baujahr: number | null; km_stand: number | null; preis: number | null;
-      farbe: string | null; broker_id: number | null; notizen: string | null;
-    };
+  const body = await req.json() as {
+    typ: string; marke: string; modell: string;
+    baujahr?: number | null; km_stand?: number | null; preis?: number | null;
+    farbe?: string | null; broker_id?: number | null; notizen?: string | null;
+  };
 
-  // Validierung
-  if (!typ || !marke || !modell) {
-    return NextResponse.json(
-      { error: "Typ, Marke und Modell sind erforderlich" },
-      { status: 400 }
-    );
+  if (!body.typ || !body.marke || !body.modell) {
+    return NextResponse.json({ error: "Type, make and model are required" }, { status: 400 });
   }
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = env.DB;
+  const newId = vehicles.length > 0 ? Math.max(...vehicles.map((v) => v.id)) + 1 : 1;
+  const newVehicle = {
+    id: newId,
+    typ: body.typ,
+    marke: body.marke,
+    modell: body.modell,
+    baujahr: body.baujahr ?? null,
+    km_stand: body.km_stand ?? null,
+    preis: body.preis ?? null,
+    farbe: body.farbe ?? null,
+    broker_id: body.broker_id ?? null,
+    notizen: body.notizen ?? null,
+    created_at: new Date().toISOString(),
+  };
+  vehicles.push(newVehicle);
 
-  try {
-    const result = await db
-      .prepare(
-        `INSERT INTO vehicles (typ, marke, modell, baujahr, km_stand, preis, farbe, broker_id, notizen) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .bind(
-        typ,
-        marke,
-        modell,
-        baujahr ?? null,
-        km_stand ?? null,
-        preis ?? null,
-        farbe || null,
-        broker_id || null,
-        notizen || null
-      )
-      .run();
-
-    // Run matching for new vehicle
-    const newVehicle = {
-      id: result.meta.last_row_id,
-      typ,
-      marke,
-      modell,
-      baujahr,
-      km_stand,
-      preis,
-      farbe,
-      broker_id,
-      notizen,
-    };
-
-    await runMatching(db, newVehicle);
-
-    return NextResponse.json({ success: true, id: result.meta.last_row_id });
-  } catch (error) {
-    console.error("Create vehicle error:", error);
-    return NextResponse.json(
-      { error: "Failed to create vehicle" },
-      { status: 500 }
-    );
+  const oppositeTyp = newVehicle.typ === "angebot" ? "gesuch" : "angebot";
+  const counterparts = vehicles.filter(
+    (v) => v.typ === oppositeTyp && v.id !== newId &&
+    v.marke.toLowerCase() === newVehicle.marke.toLowerCase()
+  );
+  if (counterparts.length > 0) {
+    const nextMatchId = matches.length > 0 ? Math.max(...matches.map((m) => m.id)) + 1 : 1;
+    counterparts.forEach((cp, i) => {
+      matches.push({
+        id: nextMatchId + i,
+        angebot_id: newVehicle.typ === "angebot" ? newId : cp.id,
+        gesuch_id: newVehicle.typ === "gesuch" ? newId : cp.id,
+        score: 75,
+        gesehen: 0,
+        status: "offen",
+        status_at: null,
+        created_at: new Date().toISOString(),
+      });
+    });
   }
+
+  return NextResponse.json({ success: true, id: newId, matchCount: counterparts.length });
 }

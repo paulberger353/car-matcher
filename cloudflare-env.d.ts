@@ -1,6 +1,3 @@
 /// <reference types="@cloudflare/workers-types" />
 
-interface CloudflareEnv {
-  DB: D1Database;
-  AI: Ai;
-}
+interface CloudflareEnv {}

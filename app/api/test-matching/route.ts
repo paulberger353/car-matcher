@@ -6,15 +6,6 @@ type TestRequest = {
   vehicle2?: VehicleRow;
 };
 
-// Test endpoint — POST /api/test-matching
-// Body: { vehicle1: VehicleRow, vehicle2: VehicleRow }
-// Returns the match score and a breakdown of which criteria matched.
-//
-// Example:
-// {
-//   "vehicle1": { "id":1,"typ":"angebot","marke":"Ferrari","modell":"488","baujahr":2019,"km_stand":12000,"preis":250000 },
-//   "vehicle2": { "id":2,"typ":"gesuch","marke":"Ferrari","modell":"488","baujahr":2020,"km_stand":10000,"preis":260000 }
-// }
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as TestRequest;
 
@@ -61,7 +52,7 @@ export async function POST(req: NextRequest) {
       },
       marke: {
         match: vehicle1.marke.toLowerCase() === vehicle2.marke.toLowerCase(),
-        note: "Marke wird im SQL-Filter geprüft, nicht im Score",
+        note: "Make is matched first; model determines the base score",
       },
       preis: {
         diffPct: priceDiffPct,

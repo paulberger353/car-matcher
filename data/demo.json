@@ -1,0 +1,175 @@
+{
+  "users": [
+    { "id": 1, "username": "demo", "password": "demo1234" }
+  ],
+  "brokers": [
+    {
+      "id": 1,
+      "name": "Müller Sportwagen GmbH",
+      "telefon": "+49 69 123456",
+      "email": "info@mueller-sportwagen.de",
+      "firma": "Müller Sportwagen GmbH",
+      "notizen": "Specializes in German performance vehicles. Located in Frankfurt Sachsenhausen.",
+      "created_at": "2024-01-15T09:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Hamburger Luxusauto",
+      "telefon": "+49 40 789012",
+      "email": "kontakt@hla-hamburg.de",
+      "firma": "Hamburger Luxusauto GmbH",
+      "notizen": "Premium import specialist. Focus on ultra-luxury and supercar segment.",
+      "created_at": "2024-01-20T11:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "name": "Premium Cars Berlin",
+      "telefon": "+49 30 345678",
+      "email": "office@premium-cars-berlin.de",
+      "firma": "Premium Cars Berlin GmbH",
+      "notizen": "Berlin's largest independent dealer for certified pre-owned supercars.",
+      "created_at": "2024-02-01T10:00:00.000Z"
+    }
+  ],
+  "vehicles": [
+    {
+      "id": 1,
+      "typ": "angebot",
+      "marke": "BMW",
+      "modell": "M3 Competition",
+      "baujahr": 2022,
+      "km_stand": 15200,
+      "preis": 84900,
+      "farbe": "Frozen Black Metallic",
+      "broker_id": 1,
+      "notizen": "M xDrive, Carbon Package, Harman Kardon sound system, heated M seats, Driving Assistant Pro",
+      "created_at": "2024-03-01T08:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "typ": "angebot",
+      "marke": "Mercedes-Benz",
+      "modell": "S 63 AMG 4MATIC+",
+      "baujahr": 2021,
+      "km_stand": 22400,
+      "preis": 148500,
+      "farbe": "Obsidian Black Metallic",
+      "broker_id": 2,
+      "notizen": "Burmester 4D surround sound, panoramic roof, executive rear package, rear axle steering",
+      "created_at": "2024-03-05T10:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "typ": "angebot",
+      "marke": "Lamborghini",
+      "modell": "Huracán LP 610-4",
+      "baujahr": 2019,
+      "km_stand": 18500,
+      "preis": 198000,
+      "farbe": "Giallo Orion",
+      "broker_id": 1,
+      "notizen": "Full service history, ceramic brakes, electrochromic roof, lift system, full camera package",
+      "created_at": "2024-03-10T09:30:00.000Z"
+    },
+    {
+      "id": 4,
+      "typ": "angebot",
+      "marke": "Porsche",
+      "modell": "911 GT3",
+      "baujahr": 2023,
+      "km_stand": 4200,
+      "preis": 187000,
+      "farbe": "Guards Red",
+      "broker_id": 3,
+      "notizen": "Weissach package, PCCB, carbon bucket seats, Clubsport package, front axle lift",
+      "created_at": "2024-03-15T14:00:00.000Z"
+    },
+    {
+      "id": 5,
+      "typ": "gesuch",
+      "marke": "BMW",
+      "modell": "M3 Competition",
+      "baujahr": 2022,
+      "km_stand": 30000,
+      "preis": 95000,
+      "farbe": null,
+      "broker_id": 2,
+      "notizen": "M xDrive preferred, any exterior color, max 30,000 km, full service history required",
+      "created_at": "2024-03-18T11:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "typ": "gesuch",
+      "marke": "Ferrari",
+      "modell": "488 GTB",
+      "baujahr": 2020,
+      "km_stand": null,
+      "preis": 220000,
+      "farbe": null,
+      "broker_id": 3,
+      "notizen": "Rosso Corsa or Giallo preferred, Ferrari-certified pre-owned only, full service history",
+      "created_at": "2024-03-20T09:00:00.000Z"
+    },
+    {
+      "id": 7,
+      "typ": "gesuch",
+      "marke": "Audi",
+      "modell": "R8 V10 Plus",
+      "baujahr": 2021,
+      "km_stand": null,
+      "preis": 130000,
+      "farbe": null,
+      "broker_id": 1,
+      "notizen": "Performance model, any color, carbon package preferred, magnetic ride suspension",
+      "created_at": "2024-03-22T13:00:00.000Z"
+    },
+    {
+      "id": 8,
+      "typ": "gesuch",
+      "marke": "Mercedes-AMG",
+      "modell": "GT S",
+      "baujahr": 2022,
+      "km_stand": null,
+      "preis": 120000,
+      "farbe": null,
+      "broker_id": 2,
+      "notizen": "AMG Performance seats, Burmester sound, carbon package, ceramic brakes preferred",
+      "created_at": "2024-03-25T10:30:00.000Z"
+    },
+    {
+      "id": 9,
+      "typ": "gesuch",
+      "marke": "Porsche",
+      "modell": "911 GT3",
+      "baujahr": 2023,
+      "km_stand": 10000,
+      "preis": 200000,
+      "farbe": null,
+      "broker_id": 3,
+      "notizen": "Touring or Clubsport package, Weissach preferred, full documentation required",
+      "created_at": "2024-03-28T08:00:00.000Z"
+    }
+  ],
+  "matches": [
+    {
+      "id": 1,
+      "angebot_id": 1,
+      "gesuch_id": 5,
+      "score": 90,
+      "gesehen": 0,
+      "status": "offen",
+      "status_at": null,
+      "created_at": "2024-03-18T11:01:00.000Z"
+    },
+    {
+      "id": 2,
+      "angebot_id": 4,
+      "gesuch_id": 9,
+      "score": 90,
+      "gesehen": 1,
+      "status": "vermittelt",
+      "status_at": "2024-04-01T10:00:00.000Z",
+      "created_at": "2024-03-28T08:01:00.000Z"
+    }
+  ]
+}

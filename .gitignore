@@ -42,3 +42,11 @@ next-env.d.ts
 
 #loginfiles
 migrations/seed-users.sql
+
+# Claude / AI tooling — not part of the public repo
+.claude/
+CLAUDE.md
+AGENTS.md
+audit_report.md
+memory/
+.open-next/

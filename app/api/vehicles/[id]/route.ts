@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
+import { vehicles } from "@/lib/data";
 
 export async function PUT(
   req: NextRequest,
@@ -15,51 +15,33 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const { typ, marke, modell, baujahr, km_stand, preis, farbe, broker_id, notizen } =
-    await req.json() as {
-      typ: string; marke: string; modell: string;
-      baujahr: number | null; km_stand: number | null; preis: number | null;
-      farbe: string | null; broker_id: number | null; notizen: string | null;
-    };
+  const idx = vehicles.findIndex((v) => v.id === parseInt(id));
+  if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  if (!typ || !marke || !modell) {
-    return NextResponse.json(
-      { error: "Typ, Marke und Modell sind erforderlich" },
-      { status: 400 }
-    );
+  const body = await req.json() as {
+    typ: string; marke: string; modell: string;
+    baujahr?: number | null; km_stand?: number | null; preis?: number | null;
+    farbe?: string | null; broker_id?: number | null; notizen?: string | null;
+  };
+
+  if (!body.typ || !body.marke || !body.modell) {
+    return NextResponse.json({ error: "Type, make and model are required" }, { status: 400 });
   }
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = env.DB;
+  vehicles[idx] = {
+    ...vehicles[idx],
+    typ: body.typ,
+    marke: body.marke,
+    modell: body.modell,
+    baujahr: body.baujahr ?? null,
+    km_stand: body.km_stand ?? null,
+    preis: body.preis ?? null,
+    farbe: body.farbe ?? null,
+    broker_id: body.broker_id ?? null,
+    notizen: body.notizen ?? null,
+  };
 
-  try {
-    await db
-      .prepare(
-        `UPDATE vehicles SET typ = ?, marke = ?, modell = ?, baujahr = ?, km_stand = ?, preis = ?, farbe = ?, broker_id = ?, notizen = ? 
-         WHERE id = ?`
-      )
-      .bind(
-        typ,
-        marke,
-        modell,
-        baujahr ?? null,
-        km_stand ?? null,
-        preis ?? null,
-        farbe || null,
-        broker_id || null,
-        notizen || null,
-        id
-      )
-      .run();
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Update vehicle error:", error);
-    return NextResponse.json(
-      { error: "Failed to update vehicle" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({ success: true });
 }
 
 export async function DELETE(
@@ -74,29 +56,9 @@ export async function DELETE(
   }
 
   const { id } = await params;
+  const idx = vehicles.findIndex((v) => v.id === parseInt(id));
+  if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = env.DB;
-
-  try {
-    // Delete all matches associated with this vehicle (CASCADE)
-    await db
-      .prepare(`DELETE FROM matches WHERE angebot_id = ? OR gesuch_id = ?`)
-      .bind(id, id)
-      .run();
-
-    // Delete the vehicle
-    await db
-      .prepare(`DELETE FROM vehicles WHERE id = ?`)
-      .bind(id)
-      .run();
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Delete vehicle error:", error);
-    return NextResponse.json(
-      { error: "Failed to delete vehicle" },
-      { status: 500 }
-    );
-  }
+  vehicles.splice(idx, 1);
+  return NextResponse.json({ success: true });
 }

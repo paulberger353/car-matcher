@@ -3,174 +3,196 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { ThemeToggle } from "@/app/components/ThemeToggle";
 
-const CarIcon = () => (
-  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+/* ─── Icons ─────────────────────────────────────────────────────────────── */
+const LogoIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3" />
+    <rect x="9" y="11" width="14" height="10" rx="2" />
+    <circle cx="12" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
   </svg>
 );
 
 const DashboardIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m2 3l2-3m2 3l2-3m2 3l2-3m2 3l2-3M3 20l2-3m2 3l2-3m2 3l2-3m2 3l2-3m2 3l2-3" />
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" />
   </svg>
 );
 
 const VehiclesIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 18h.01M4 12h.01M8 12h.01M12 12h.01M16 12h.01M20 12h.01M4 6h16M4 8h16" />
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1L2 12v4h2" />
+    <circle cx="6.5" cy="16.5" r="2.5" /><circle cx="16.5" cy="16.5" r="2.5" />
   </svg>
 );
 
-const BrokerIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM4 20h16a1 1 0 001-1v-2a3 3 0 00-3-3H7a3 3 0 00-3 3v2a1 1 0 001 1z" />
+const BrokersIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
   </svg>
 );
 
 const MatchesIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4.243 4.243a4 4 0 105.656 5.656l4.243-4.243" />
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
   </svg>
 );
 
 const LogoutIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
   </svg>
 );
 
-type NavItem = {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-};
-
-const navItems: NavItem[] = [
+/* ─── Navigation ─────────────────────────────────────────────────────────── */
+const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
-  { href: "/dashboard/fahrzeuge", label: "Fahrzeuge", icon: <VehiclesIcon /> },
-  { href: "/dashboard/broker", label: "Broker", icon: <BrokerIcon /> },
+  { href: "/dashboard/fahrzeuge", label: "Vehicles", icon: <VehiclesIcon /> },
+  { href: "/dashboard/broker", label: "Brokers", icon: <BrokersIcon /> },
   { href: "/dashboard/matches", label: "Matches", icon: <MatchesIcon /> },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const pageTitles: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/dashboard/fahrzeuge": "Vehicles",
+  "/dashboard/broker": "Brokers",
+  "/dashboard/matches": "Matches",
+};
+
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isAuthed, setIsAuthed] = useState(false);
 
   useEffect(() => {
-    // Client-side auth check
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("/api/vehicles?limit=1");
-        setIsAuthed(res.ok);
-        if (!res.ok) {
-          router.push("/login");
-        }
-      } catch {
-        router.push("/login");;
-      }
-    };
-    checkAuth();
+    fetch("/api/vehicles?limit=1").then((res) => {
+      if (res.ok) setIsAuthed(true);
+      else router.push("/login");
+    }).catch(() => router.push("/login"));
   }, []);
 
   if (!isAuthed) {
-    return <div className="min-h-screen bg-[#0f0f12]" />;
+    return <div className="min-h-screen bg-[var(--bg)]" />;
   }
 
+  const pageTitle = pageTitles[pathname] ?? "Dashboard";
+
   return (
-    <div className="flex h-screen bg-[#0f0f12]">
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-60 bg-[#16161a] border-r border-[#2a2a35] flex-col">
+    <div className="flex h-screen bg-[var(--bg)]">
+
+      {/* ── Desktop Sidebar ────────────────────────────────────────────── */}
+      <aside className="hidden md:flex w-60 flex-col flex-shrink-0" style={{ backgroundColor: "var(--sidebar-bg)" }}>
+
         {/* Logo */}
-        <div className="p-6 border-b border-[#2a2a35]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#8b5cf6] rounded-lg flex items-center justify-center">
-              <CarIcon />
-            </div>
-            <h1 className="text-lg font-bold text-[#f0f0f5]">CarMatcher</h1>
+        <div className="flex items-center gap-3 px-5 h-14 border-b" style={{ borderColor: "var(--sidebar-border)" }}>
+          <div className="w-7 h-7 flex items-center justify-center rounded-md" style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "var(--palette-teal-lt, #7bbfc7)" }}>
+            <LogoIcon />
           </div>
+          <span className="text-white font-semibold text-sm tracking-tight">CarMatcher</span>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-2">
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
           {navItems.map((item) => {
             const isActive =
               pathname === item.href ||
-              (pathname.startsWith(item.href) && item.href !== "/dashboard");
+              (item.href !== "/dashboard" && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                style={
                   isActive
-                    ? "bg-[#8b5cf6]/10 text-[#8b5cf6] border-l-2 border-[#8b5cf6]"
-                    : "text-[#9898a8] hover:text-[#f0f0f5]"
+                    ? { backgroundColor: "var(--sidebar-active-bg)", color: "var(--sidebar-active-text)", borderLeft: "2px solid #3d8790" }
+                    : { color: "var(--sidebar-text-dim)" }
+                }
+                className={`flex items-center gap-2.5 rounded-lg transition text-sm font-medium ${
+                  isActive ? "pl-[10px] pr-3 py-2" : "px-3 py-2 hover:bg-white/8 hover:text-[var(--sidebar-text)]"
                 }`}
               >
                 {item.icon}
-                <span className="font-medium">{item.label}</span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        {/* Logout Button */}
-        <div className="p-4 border-t border-[#2a2a35]">
+        {/* Bottom */}
+        <div className="px-3 pb-4 pt-3 border-t space-y-0.5" style={{ borderColor: "var(--sidebar-border)" }}>
+          <ThemeToggle sidebar />
           <form action="/api/auth/logout" method="POST">
             <button
               type="submit"
-              className="w-full bg-[#2a2a35] hover:bg-[#3f3f46] text-[#f0f0f5] py-2.5 rounded-lg transition flex items-center justify-center gap-2 font-medium"
+              style={{ color: "var(--sidebar-text-dim)" }}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition hover:bg-white/10 hover:text-white text-sm font-medium"
             >
               <LogoutIcon />
-              <span>Abmelden</span>
+              <span>Sign out</span>
             </button>
           </form>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden md:pb-0 pb-20">
+      {/* ── Main content ──────────────────────────────────────────────── */}
+      <main className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
+
+        {/* Header bar */}
+        <header
+          className="flex items-center justify-between px-5 h-14 border-b flex-shrink-0"
+          style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}
+        >
+          <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+            {pageTitle}
+          </span>
+          <div className="md:hidden">
+            <ThemeToggle />
+          </div>
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
+        </header>
+
         <div className="flex-1 overflow-auto">{children}</div>
-
-        {/* Mobile Bottom Navigation */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#16161a] border-t border-[#2a2a35] flex justify-around">
-          {navItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (pathname.startsWith(item.href) && item.href !== "/dashboard");
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex-1 flex flex-col items-center justify-center py-4 px-2 transition min-h-[60px] ${
-                  isActive ? "text-[#8b5cf6]" : "text-[#9898a8] hover:text-[#f0f0f5]"
-                }`}
-              >
-                <div className="text-2xl">{item.icon}</div>
-                <span className="text-xs mt-1 font-medium">{item.label}</span>
-              </Link>
-            );
-          })}
-
-          {/* Mobile Logout */}
-          <form action="/api/auth/logout" method="POST" className="flex-1">
-            <button
-              type="submit"
-              className="w-full h-full flex flex-col items-center justify-center py-4 px-2 text-[#9898a8] hover:text-[#f0f0f5] transition"
-            >
-              <div className="text-2xl">
-                <LogoutIcon />
-              </div>
-              <span className="text-xs mt-1 font-medium">Logout</span>
-            </button>
-          </form>
-        </nav>
       </main>
+
+      {/* ── Mobile Bottom Nav ─────────────────────────────────────────── */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 flex border-t"
+        style={{ backgroundColor: "var(--sidebar-bg)", borderColor: "var(--sidebar-border)" }}
+      >
+        {navItems.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{ color: isActive ? "#3d8790" : "var(--sidebar-text-dim)" }}
+              className="flex-1 flex flex-col items-center justify-center py-3 gap-1 transition"
+            >
+              {item.icon}
+              <span className="text-[10px] font-medium">{item.label}</span>
+            </Link>
+          );
+        })}
+        <form action="/api/auth/logout" method="POST" className="flex-1">
+          <button
+            type="submit"
+            style={{ color: "var(--sidebar-text-dim)" }}
+            className="w-full h-full flex flex-col items-center justify-center py-3 gap-1 transition hover:text-white"
+          >
+            <LogoutIcon />
+            <span className="text-[10px] font-medium">Sign out</span>
+          </button>
+        </form>
+      </nav>
+
     </div>
   );
 }

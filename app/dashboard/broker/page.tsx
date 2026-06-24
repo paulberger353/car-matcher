@@ -3,168 +3,168 @@
 import { useState, useEffect } from "react";
 
 type Broker = {
-  id: number;
-  name: string;
-  telefon: string | null;
-  email: string | null;
-  firma: string | null;
-  notizen: string | null;
-  vehicle_count: number;
-  created_at: string;
+  id: number; name: string; telefon: string | null; email: string | null;
+  firma: string | null; notizen: string | null; created_at: string; vehicle_count: number;
 };
 
 const PlusIcon = () => (
-  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-  </svg>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 );
-
 const EditIcon = () => (
-  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-  </svg>
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+);
+const DeleteIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+);
+const CloseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 );
 
-export default function BrokerSeite() {
+export default function BrokersPage() {
   const [brokers, setBrokers] = useState<Broker[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBroker, setEditingBroker] = useState<Broker | null>(null);
 
-  useEffect(() => {
-    fetchBrokers();
-  }, []);
+  useEffect(() => { fetchBrokers(); }, []);
 
   async function fetchBrokers() {
+    setLoading(true);
     try {
       const res = await fetch("/api/brokers");
-      if (res.ok) {
-        const data = await res.json() as { brokers: Broker[] };
-        setBrokers(data.brokers || []);
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-    } finally {
-      setLoading(false);
-    }
+      if (res.ok) setBrokers((await res.json() as { brokers: Broker[] }).brokers || []);
+    } catch { setError("Failed to load brokers"); }
+    finally { setLoading(false); }
   }
 
-  function openModal(broker?: Broker) {
-    setEditingBroker(broker ?? null);
-    setIsModalOpen(true);
+  async function deleteBroker(broker: Broker) {
+    if (broker.vehicle_count > 0) {
+      setError(`Cannot delete "${broker.name}" — ${broker.vehicle_count} vehicle${broker.vehicle_count !== 1 ? "s" : ""} assigned`);
+      return;
+    }
+    if (!confirm(`Delete ${broker.name}?`)) return;
+    const res = await fetch(`/api/brokers/${broker.id}`, { method: "DELETE" });
+    if (res.ok) setBrokers((p) => p.filter((b) => b.id !== broker.id));
+    else setError("Failed to delete");
   }
 
   return (
     <div className="p-6 md:p-8 space-y-6">
+
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-bold text-[#f0f0f5] mb-1">Broker</h1>
-          <p className="text-[#9898a8]">{brokers.length} Broker</p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          {brokers.length} broker{brokers.length !== 1 ? "s" : ""}
+        </p>
         <button
-          onClick={() => openModal()}
-          className="bg-[#8b5cf6] hover:bg-[#7c3aed] text-white px-4 md:px-6 py-2.5 rounded-lg transition flex items-center justify-center md:justify-start gap-2 font-medium"
+          onClick={() => { setEditingBroker(null); setIsModalOpen(true); }}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition"
+          style={{ backgroundColor: "var(--accent)" }}
         >
-          <PlusIcon />
-          <span>Broker hinzufügen</span>
+          <PlusIcon /> Add broker
         </button>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden md:block bg-[#1e1e24] border border-[#2a2a35] rounded-xl overflow-hidden">
+      {/* Error */}
+      {error && (
+        <div className="flex items-center justify-between px-4 py-3 rounded-lg border text-sm"
+          style={{ color: "var(--error)", backgroundColor: "var(--error-bg)", borderColor: "var(--error)" }}>
+          <span>{error}</span>
+          <button onClick={() => setError("")} className="ml-3 opacity-60 hover:opacity-100"><CloseIcon /></button>
+        </div>
+      )}
+
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-xl border overflow-hidden" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
         {loading ? (
-          <div className="px-6 py-12 text-center text-[#9898a8]">Lädt...</div>
-        ) : brokers.length > 0 ? (
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-tertiary)" }}>Loading…</div>
+        ) : brokers.length === 0 ? (
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-tertiary)" }}>No brokers yet</div>
+        ) : (
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#2a2a35] bg-[#2a2a35]/40">
-                {["Name", "Telefon", "Email", "Firma", "Fahrzeuge", "Erstellt", ""].map((h) => (
-                  <th key={h} className="px-6 py-4 text-left text-sm font-semibold text-[#9898a8]">
-                    {h}
-                  </th>
+              <tr className="border-b" style={{ backgroundColor: "var(--surface-subtle)", borderColor: "var(--border)" }}>
+                {["Name", "Company", "Phone", "Email", "Vehicles", "Added", ""].map((h) => (
+                  <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {brokers.map((broker) => (
-                <tr key={broker.id} className="border-b border-[#2a2a35] hover:bg-[#2a2a35]/50 transition">
-                  <td className="px-6 py-4 text-sm font-medium text-[#f0f0f5]">{broker.name}</td>
-                  <td className="px-6 py-4 text-sm text-[#9898a8]">{broker.telefon || "—"}</td>
-                  <td className="px-6 py-4 text-sm text-[#9898a8]">{broker.email || "—"}</td>
-                  <td className="px-6 py-4 text-sm text-[#9898a8]">{broker.firma || "—"}</td>
-                  <td className="px-6 py-4 text-sm text-[#9898a8]">
-                    <span className="bg-[#8b5cf6]/20 text-[#c4b5fd] px-2 py-0.5 rounded text-xs font-semibold">
-                      {broker.vehicle_count}
+              {brokers.map((b) => (
+                <tr key={b.id} className="border-b last:border-0 transition" style={{ borderColor: "var(--border)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--surface-subtle)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  <td className="px-5 py-3.5 text-sm font-medium" style={{ color: "var(--text-primary)" }}>{b.name}</td>
+                  <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-secondary)" }}>{b.firma || "—"}</td>
+                  <td className="px-5 py-3.5 text-sm">
+                    {b.telefon ? (
+                      <a href={`tel:${b.telefon}`} style={{ color: "var(--accent)" }} className="hover:underline">{b.telefon}</a>
+                    ) : <span style={{ color: "var(--text-secondary)" }}>—</span>}
+                  </td>
+                  <td className="px-5 py-3.5 text-sm">
+                    {b.email ? (
+                      <a href={`mailto:${b.email}`} style={{ color: "var(--accent)" }} className="hover:underline">{b.email}</a>
+                    ) : <span style={{ color: "var(--text-secondary)" }}>—</span>}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold"
+                      style={{ backgroundColor: "var(--accent-subtle)", color: "var(--text-primary)" }}>
+                      {b.vehicle_count}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#9898a8]">
-                    {new Date(broker.created_at).toLocaleDateString("de-DE")}
+                  <td className="px-5 py-3.5 text-sm" style={{ color: "var(--text-tertiary)" }}>
+                    {new Date(b.created_at).toLocaleDateString("en-GB")}
                   </td>
-                  <td className="px-6 py-4 text-sm">
-                    <button
-                      onClick={() => openModal(broker)}
-                      className="text-[#8b5cf6] hover:text-[#c4b5fd] transition"
-                    >
-                      <EditIcon />
-                    </button>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => { setEditingBroker(b); setIsModalOpen(true); }} style={{ color: "var(--accent)" }} className="hover:opacity-70 transition"><EditIcon /></button>
+                      <button onClick={() => deleteBroker(b)} style={{ color: "var(--error)" }} className="hover:opacity-70 transition"><DeleteIcon /></button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        ) : (
-          <div className="px-6 py-12 text-center text-[#9898a8]">Keine Broker vorhanden</div>
         )}
       </div>
 
-      {/* Mobile Cards */}
-      <div className="md:hidden space-y-4">
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
         {loading ? (
-          <div className="text-center text-[#9898a8]">Lädt...</div>
+          <p className="text-center text-sm" style={{ color: "var(--text-tertiary)" }}>Loading…</p>
         ) : brokers.length === 0 ? (
-          <div className="text-center text-[#9898a8]">Keine Broker vorhanden</div>
+          <p className="text-center text-sm" style={{ color: "var(--text-tertiary)" }}>No brokers yet</p>
         ) : (
-          brokers.map((broker) => (
-            <div key={broker.id} className="bg-[#1e1e24] border border-[#2a2a35] rounded-xl p-4">
-              <div className="flex justify-between items-start mb-3">
+          brokers.map((b) => (
+            <div key={b.id} className="rounded-xl border p-4" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
+              <div className="flex items-start justify-between mb-3">
                 <div>
-                  <p className="text-[#f0f0f5] font-bold text-lg">{broker.name}</p>
-                  {broker.firma && (
-                    <p className="text-[#9898a8] text-sm mt-0.5">{broker.firma}</p>
-                  )}
+                  <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{b.name}</p>
+                  {b.firma && <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{b.firma}</p>}
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="bg-[#8b5cf6]/20 text-[#c4b5fd] px-2 py-0.5 rounded text-xs font-semibold">
-                    {broker.vehicle_count} Fzg.
-                  </span>
-                  <button
-                    onClick={() => openModal(broker)}
-                    className="text-[#8b5cf6] hover:text-[#c4b5fd] transition p-1"
-                  >
-                    <EditIcon />
-                  </button>
+                <div className="flex gap-2">
+                  <button onClick={() => { setEditingBroker(b); setIsModalOpen(true); }} style={{ color: "var(--accent)" }} className="p-1.5"><EditIcon /></button>
+                  <button onClick={() => deleteBroker(b)} style={{ color: "var(--error)" }} className="p-1.5"><DeleteIcon /></button>
                 </div>
               </div>
-
-              <div className="space-y-1.5 text-sm">
-                {broker.telefon && (
+              <div className="space-y-1 text-xs">
+                {b.telefon && (
                   <div className="flex justify-between">
-                    <span className="text-[#9898a8]">Telefon</span>
-                    <span className="text-[#f0f0f5]">{broker.telefon}</span>
+                    <span style={{ color: "var(--text-tertiary)" }}>Phone</span>
+                    <a href={`tel:${b.telefon}`} style={{ color: "var(--accent)" }} className="hover:underline">{b.telefon}</a>
                   </div>
                 )}
-                {broker.email && (
+                {b.email && (
                   <div className="flex justify-between">
-                    <span className="text-[#9898a8]">Email</span>
-                    <span className="text-[#f0f0f5] break-all">{broker.email}</span>
+                    <span style={{ color: "var(--text-tertiary)" }}>Email</span>
+                    <a href={`mailto:${b.email}`} style={{ color: "var(--accent)" }}>{b.email}</a>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-[#9898a8]">Erstellt</span>
-                  <span className="text-[#9898a8]">
-                    {new Date(broker.created_at).toLocaleDateString("de-DE")}
-                  </span>
+                  <span style={{ color: "var(--text-tertiary)" }}>Vehicles</span>
+                  <span style={{ color: "var(--text-primary)" }}>{b.vehicle_count}</span>
                 </div>
               </div>
             </div>
@@ -174,142 +174,88 @@ export default function BrokerSeite() {
 
       {isModalOpen && (
         <BrokerModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
           broker={editingBroker}
-          onSuccess={() => {
-            setIsModalOpen(false);
-            fetchBrokers();
-          }}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={() => { setIsModalOpen(false); fetchBrokers(); }}
         />
       )}
     </div>
   );
 }
 
-function BrokerModal({
-  isOpen,
-  onClose,
-  broker,
-  onSuccess,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  broker: Broker | null;
-  onSuccess: () => void;
+/* ─── Modal ────────────────────────────────────────────────────────────────── */
+function BrokerModal({ broker, onClose, onSuccess }: {
+  broker: Broker | null; onClose: () => void; onSuccess: () => void;
 }) {
   const [form, setForm] = useState({
     name: broker?.name || "",
+    firma: broker?.firma || "",
     telefon: broker?.telefon || "",
     email: broker?.email || "",
-    firma: broker?.firma || "",
     notizen: broker?.notizen || "",
   });
-
-  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  function update(field: keyof typeof form) {
-    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
-  }
+  const [error, setError] = useState("");
 
   async function handleSubmit() {
-    if (!form.name) {
-      setError("Name ist erforderlich");
-      return;
-    }
-
-    setSubmitting(true);
-    setError("");
-
+    if (!form.name.trim()) { setError("Name is required"); return; }
+    setSubmitting(true); setError("");
     try {
       const method = broker ? "PUT" : "POST";
       const url = broker ? `/api/brokers/${broker.id}` : "/api/brokers";
-
       const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        method, headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: form.name.trim(), firma: form.firma.trim() || null, telefon: form.telefon.trim() || null, email: form.email.trim() || null, notizen: form.notizen.trim() || null }),
       });
-
-      if (res.ok) {
-        onSuccess();
-      } else {
-        const data = await res.json() as { error?: string };
-        setError(data.error || "Fehler beim Speichern");
-      }
-    } catch {
-      setError("Fehler beim Speichern");
-    } finally {
-      setSubmitting(false);
-    }
+      if (res.ok) onSuccess();
+      else { const d = await res.json() as { error?: string }; setError(d.error || "Failed to save"); }
+    } catch { setError("Failed to save"); }
+    finally { setSubmitting(false); }
   }
 
-  if (!isOpen) return null;
+  const inputStyle: React.CSSProperties = { backgroundColor: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-primary)" };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1e1e24] border border-[#2a2a35] rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="border-b border-[#2a2a35] px-6 py-4 flex items-center justify-between sticky top-0 bg-[#1e1e24]">
-          <h2 className="text-xl font-semibold text-[#f0f0f5]">
-            {broker ? "Broker bearbeiten" : "Broker hinzufügen"}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
+      <div className="w-full max-w-md rounded-xl border shadow-xl flex flex-col overflow-hidden" style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)" }}>
+
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "var(--border)" }}>
+          <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
+            {broker ? "Edit broker" : "Add broker"}
           </h2>
-          <button onClick={onClose} className="text-[#9898a8] hover:text-[#f0f0f5] transition text-2xl leading-none">
-            ✕
-          </button>
+          <button onClick={onClose} style={{ color: "var(--text-tertiary)" }} className="hover:opacity-70 transition"><CloseIcon /></button>
         </div>
 
-        <div className="p-6 space-y-4">
-          {[
-            { label: "Name *", field: "name" as const, type: "text", placeholder: "Max Mustermann" },
-            { label: "Telefon", field: "telefon" as const, type: "tel", placeholder: "+49 123 456789" },
-            { label: "Email", field: "email" as const, type: "email", placeholder: "max@example.com" },
-            { label: "Firma", field: "firma" as const, type: "text", placeholder: "AutoX GmbH" },
-          ].map(({ label, field, type, placeholder }) => (
+        <div className="p-5 space-y-4">
+          {([ ["Name *", "name", "text", "Max Müller"], ["Company", "firma", "text", "Müller Sportwagen GmbH"], ["Phone", "telefon", "tel", "+49 69 123456"], ["Email", "email", "email", "info@example.de"] ] as [string, keyof typeof form, string, string][]).map(([label, field, type, placeholder]) => (
             <div key={field}>
-              <label className="block text-sm font-medium text-[#9898a8] mb-2">{label}</label>
-              <input
-                type={type}
-                value={form[field]}
-                onChange={update(field)}
-                placeholder={placeholder}
-                className="w-full bg-[#2a2a35] text-[#f0f0f5] rounded-lg px-4 py-2 outline-none border border-[#3a3a40] focus:border-[#8b5cf6] transition"
+              <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "var(--text-secondary)" }}>{label}</label>
+              <input type={type} value={form[field]} onChange={(e) => setForm((p) => ({ ...p, [field]: e.target.value }))} placeholder={placeholder}
+                className="w-full rounded-lg px-3 py-2.5 text-sm border outline-none"
+                style={inputStyle}
               />
             </div>
           ))}
-
           <div>
-            <label className="block text-sm font-medium text-[#9898a8] mb-2">Notizen</label>
-            <textarea
-              value={form.notizen}
-              onChange={update("notizen")}
-              placeholder="Zusätzliche Notizen"
-              className="w-full bg-[#2a2a35] text-[#f0f0f5] rounded-lg px-4 py-3 outline-none border border-[#3a3a40] focus:border-[#8b5cf6] transition min-h-20"
+            <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "var(--text-secondary)" }}>Notes</label>
+            <textarea value={form.notizen} onChange={(e) => setForm((p) => ({ ...p, notizen: e.target.value }))}
+              placeholder="Additional information…"
+              className="w-full rounded-lg px-3 py-2.5 text-sm border outline-none min-h-20 resize-none"
+              style={inputStyle}
             />
           </div>
+          {error && <p className="text-xs" style={{ color: "var(--error)" }}>{error}</p>}
+        </div>
 
-          {error && (
-            <div className="p-3 bg-[#ef4444]/10 border border-[#ef4444] text-[#fca5a5] rounded-lg text-sm">
-              {error}
-            </div>
-          )}
-
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={onClose}
-              className="flex-1 bg-[#2a2a35] hover:bg-[#3a3a40] text-[#f0f0f5] px-4 py-2 rounded-lg transition font-medium"
-            >
-              Abbrechen
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting || !form.name}
-              className="flex-1 bg-[#8b5cf6] hover:bg-[#7c3aed] disabled:opacity-50 text-white px-4 py-2 rounded-lg transition font-medium"
-            >
-              {submitting ? "Speichert..." : "Speichern"}
-            </button>
-          </div>
+        <div className="flex gap-3 px-5 py-4 border-t" style={{ borderColor: "var(--border)" }}>
+          <button onClick={onClose} className="flex-1 rounded-lg py-2 text-sm font-medium border transition"
+            style={{ backgroundColor: "var(--surface-subtle)", borderColor: "var(--border)", color: "var(--text-primary)" }}>
+            Cancel
+          </button>
+          <button onClick={handleSubmit} disabled={submitting} className="flex-1 rounded-lg py-2 text-sm font-medium text-white transition disabled:opacity-50"
+            style={{ backgroundColor: "var(--accent)" }}>
+            {submitting ? "Saving…" : "Save"}
+          </button>
         </div>
       </div>
     </div>

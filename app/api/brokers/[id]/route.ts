@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
+import { brokers, vehicles } from "@/lib/data";
 
 export async function PUT(
   req: NextRequest,
@@ -15,37 +15,28 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const { name, telefon, email, firma, notizen } = await req.json() as {
-    name: string; telefon: string | null; email: string | null; firma: string | null; notizen: string | null;
+  const idx = brokers.findIndex((b) => b.id === parseInt(id));
+  if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const body = await req.json() as {
+    name: string; firma?: string | null; telefon?: string | null;
+    email?: string | null; notizen?: string | null;
   };
 
-  if (!name) {
-    return NextResponse.json(
-      { error: "Name ist erforderlich" },
-      { status: 400 }
-    );
+  if (!body.name) {
+    return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = env.DB;
+  brokers[idx] = {
+    ...brokers[idx],
+    name: body.name,
+    firma: body.firma ?? null,
+    telefon: body.telefon ?? null,
+    email: body.email ?? null,
+    notizen: body.notizen ?? null,
+  };
 
-  try {
-    await db
-      .prepare(
-        `UPDATE brokers SET name = ?, telefon = ?, email = ?, firma = ?, notizen = ?
-         WHERE id = ?`
-      )
-      .bind(name, telefon || null, email || null, firma || null, notizen || null, id)
-      .run();
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Update broker error:", error);
-    return NextResponse.json(
-      { error: "Failed to update broker" },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({ success: true });
 }
 
 export async function DELETE(
@@ -60,34 +51,19 @@ export async function DELETE(
   }
 
   const { id } = await params;
+  const numId = parseInt(id);
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = env.DB;
-
-  try {
-    const vehicleCount = await db
-      .prepare(`SELECT COUNT(*) as count FROM vehicles WHERE broker_id = ?`)
-      .bind(id)
-      .first<{ count: number }>();
-
-    if (vehicleCount && vehicleCount.count > 0) {
-      return NextResponse.json(
-        { error: "Broker hat noch Fahrzeuge und kann nicht gelöscht werden" },
-        { status: 400 }
-      );
-    }
-
-    await db
-      .prepare(`DELETE FROM brokers WHERE id = ?`)
-      .bind(id)
-      .run();
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Delete broker error:", error);
+  const vehicleCount = vehicles.filter((v) => v.broker_id === numId).length;
+  if (vehicleCount > 0) {
     return NextResponse.json(
-      { error: "Failed to delete broker" },
-      { status: 500 }
+      { error: "Broker still has vehicles and cannot be deleted" },
+      { status: 400 }
     );
   }
+
+  const idx = brokers.findIndex((b) => b.id === numId);
+  if (idx === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  brokers.splice(idx, 1);
+  return NextResponse.json({ success: true });
 }

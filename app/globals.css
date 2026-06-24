@@ -1,43 +1,84 @@
 @import "tailwindcss";
 
+/* ─── Palette (raw values — never reference directly in components) ──────── */
 :root {
-  --background: #0f0f12;
-  --surface: #16161a;
-  --card: #1e1e24;
-  --border: #2a2a35;
-  --accent: #8b5cf6;
-  --accent-hover: #7c3aed;
-  --text-primary: #f0f0f5;
-  --text-secondary: #9898a8;
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --error: #ef4444;
+  --palette-navy:    #07283f;
+  --palette-mid:     #335c75;
+  --palette-teal:    #3d8790;
+  --palette-teal-lt: #7bbfc7;
+
+  /* Light mode tokens */
+  --bg:              #f4f7fa;
+  --surface:         #ffffff;
+  --surface-subtle:  #edf1f6;
+  --border:          #d6dfe8;
+  --text-primary:    #07283f;
+  --text-secondary:  #4a6275;
+  --text-tertiary:   #8fa0b0;
+  --accent:          #335c75;
+  --accent-hover:    #07283f;
+  --accent-subtle:   rgba(51, 92, 117, 0.09);
+  --accent-text:     #335c75;
+
+  /* Sidebar — always dark */
+  --sidebar-bg:          #07283f;
+  --sidebar-border:      rgba(255, 255, 255, 0.09);
+  --sidebar-text:        #c8d8e4;
+  --sidebar-text-dim:    #6a8fa0;
+  --sidebar-active-bg:   rgba(255, 255, 255, 0.10);
+  --sidebar-active-text: #ffffff;
+
+  /* Status */
+  --success:    #16a34a;
+  --success-bg: #dcfce7;
+  --warning:    #d97706;
+  --warning-bg: #fef3c7;
+  --error:      #dc2626;
+  --error-bg:   #fee2e2;
 }
 
+/* ─── Dark mode ──────────────────────────────────────────────────────────── */
+html.dark {
+  --bg:              #0b1a26;
+  --surface:         #102030;
+  --surface-subtle:  #0e1d2a;
+  --border:          #1c3347;
+  --text-primary:    #e2ecf3;
+  --text-secondary:  #8fa0b0;
+  --text-tertiary:   #4a6275;
+  --accent:          #3d8790;
+  --accent-hover:    #7bbfc7;
+  --accent-subtle:   rgba(61, 135, 144, 0.12);
+  --accent-text:     #7bbfc7;
+
+  --success-bg: rgba(22, 163, 74, 0.15);
+  --warning-bg: rgba(217, 119, 6, 0.15);
+  --error-bg:   rgba(220, 38, 38, 0.15);
+}
+
+/* ─── Tailwind v4 theme mapping ──────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-surface: var(--surface);
-  --color-card: var(--card);
-  --color-accent: var(--accent);
-  --font-sans: system-ui;
+  --font-sans:            "Inter", system-ui, -apple-system, sans-serif;
+  --color-bg:             var(--bg);
+  --color-surface:        var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-border:         var(--border);
+  --color-accent:         var(--accent);
 }
 
-* {
-  @apply border-[#2a2a35];
-}
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+* { border-color: var(--border); }
 
 body {
-  @apply bg-[#0f0f12] text-[#f0f0f5];
-  font-family: system-ui, -apple-system, sans-serif;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Verhindert das automatische Passwort-Auge in Edge/IE */
+/* Suppress browser autofill eye icons */
 input::-ms-reveal,
-input::-ms-clear {
-  display: none;
-}
-
-/* Verhindert ähnliche Browser-Icons in anderen Webkit-Browsern */
+input::-ms-clear { display: none; }
 input::-webkit-contacts-auto-fill-button,
 input::-webkit-credentials-auto-fill-button {
   visibility: hidden;
